@@ -80,6 +80,11 @@ Diese Richtlinien gelten für alle Repositories der Protocol‑Blackout‑Organi
 
 # 4. Backend / Node / Express
 
+## Module-System
+- Node-Projekte verwenden durchgängig `"type": "module"` in der `package.json`
+- Nur ES Modules: `import`/`export` verwenden, kein `require` und kein `module.exports`
+- Dateiendung für JS-Dateien: `.js` (keine `.cjs`/`.mjs` nötig, da `"type": "module"` gesetzt ist)
+
 ## Architektur
 - Routen enthalten **keine Logik** → nur Weiterleitung  
 - Controller führen Operationen aus  
