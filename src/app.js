@@ -1,6 +1,7 @@
 // Zentrale Express-App für das Backend
 
 import express from "express";
+import gamesRoutes from "./routes/gamesRoutes.js";
 
 
 const app = express();
@@ -14,6 +15,10 @@ app.use(express.json());
 app.get("/health", (req, res) => {
     res.status(200).json({ status: "ok" });
 });
+
+
+// Games-Route
+app.use("/games", gamesRoutes);
 
 
 export default app;
