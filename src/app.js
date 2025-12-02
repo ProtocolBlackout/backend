@@ -2,6 +2,7 @@
 
 import express from "express";
 import gamesRoutes from "./routes/gamesRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 
 const app = express();
@@ -19,6 +20,10 @@ app.get("/health", (req, res) => {
 
 // Games-Route
 app.use("/games", gamesRoutes);
+
+
+// Auth-Route für Login & Registrierung
+app.use("/auth", authRoutes);
 
 
 export default app;
