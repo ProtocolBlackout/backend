@@ -13,11 +13,13 @@ export async function connectDB() {
 
     // Genau dieser Text wird im Test erwartet!
     if (!dbName) {
-        throw new Error("DATABASE ist nicht gesetzt")
+        throw new Error("DATABASE ist nicht gesetzt");
     }
 
     // Verbindung zu MongoDB
     await mongoose.connect(mongoUrl, {
         dbName: dbName
     });
+
+    console.log("Mit MongoDB verbunden");
 }

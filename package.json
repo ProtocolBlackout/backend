@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch src/server.js",
-    "test": "vitest"
+    "dev": "node --env-file=.env --watch src/server.js",
+    "test": "node --env-file=.env node_modules/vitest/vitest.mjs"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/ProtocolBlackout/backend#readme",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "mongoose": "^9.0.0"
