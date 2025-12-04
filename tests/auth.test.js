@@ -112,6 +112,9 @@ describe("Auth-Routen", () => {
             expect(typeof loginResponse.body.token).toBe("string");
             expect(loginResponse.body.token.length).toBeGreaterThan(0);
 
+            const token = loginResponse.body.token;
+            expect(token.split(".").length).toBe(3);
+
             expect(loginResponse.body).toHaveProperty("user");
             expect(loginResponse.body.user).toHaveProperty("email", userData.email);
             expect(loginResponse.body.user).toHaveProperty("username", userData.username);
@@ -130,6 +133,61 @@ describe("Auth-Routen", () => {
                 "message",
                 "E-Mail oder Passwort ist ungültig"
             );
+        });
+    });
+
+
+    describe("GET /auth/profile", () => {
+        it("gibt 401 zurück, wenn kein Token gesendet wird", async() => {
+            const response = await request(app).get("/auth/profile");
+
+            expect(response.status).toBe(401);
+            expect(response.body).toHaveProperty("message", "Nicht autorisiert");
+        });
+
+
+        it("gibt das Profil zurück, wenn ein gültiger Token gesendet wird", async () => {
+            const userData = {
+                username: "profileuser",
+                email: "profileuser@example.com",
+                password: "ProfilePass123!"
+            };
+
+            // Zuerst registrieren
+            const registerResponse = await request(app)
+            .post("/auth/register")
+            .send(userData);
+
+            expect(registerResponse.status).toBe(201);
+
+
+            // Dann einloggen, um ein gültiges Token zu erhalten
+            const loginResponse = await request(app)
+            .post("/auth/login")
+            .send({
+                email: userData.email,
+                password: userData.password
+            });
+
+            expect(loginResponse.status).toBe(200);
+            const token = loginResponse.body.token;
+
+
+            // Geschützte Route mit Bearer-Token aufrufen
+            const profileResponse = await request(app)
+            .get("/auth/profile")
+            .set("Authorization", `Bearer ${token}`);
+
+            expect(profileResponse.status).toBe(200);
+            expect(profileResponse.body).toHaveProperty("message", "Profil erfolgreich geladen");
+            expect(profileResponse.body).toHaveProperty("user");
+
+
+            const user = profileResponse.body.user;
+
+            expect(user).toHaveProperty("id");
+            expect(user).toHaveProperty("username", userData.username);
+            expect(user).toHaveProperty("email", userData.email);
         });
     });
 });
