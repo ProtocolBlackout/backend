@@ -2,6 +2,7 @@
 
 import bcrypt from "bcrypt";
 import { User } from "../models/User.js";
+import { signToken } from "../services/jwtService.js";
 
 
 // Registrierung eines neuen Users
@@ -90,8 +91,8 @@ export const loginUser = async (req, res) => {
         }
 
 
-        // Platzhalter-Token für MVP (Minimum Viable Product)
-        const token = "dummy-token";
+        // JWT für den eingeloggten User erstellen
+        const token = signToken(existingUser._id.toString());
 
         const safeUser = {
             id: existingUser._id.toString(),
@@ -110,6 +111,35 @@ export const loginUser = async (req, res) => {
         console.error("Fehler beim loginUser:", error);
         return res.status(500).json({
             message: "Es ist ein Fehler beim Login aufgetreten"
+        });
+    }
+};
+
+
+// Aktuelles User-Profil für eingeloggte User zurückgeben
+export const getAuthProfile = (req, res) => {
+    try {
+        // Falls aus irgendeinem Grund kein User am Request hängt
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Nicht autorisiert"
+            });
+        }
+
+        const safeUser = {
+            id: req.user._id.toString(),
+            username: req.user.username,
+            email: req.user.email
+        };
+
+        return res.status(200).json({
+            message: "Profil erfolgreich geladen",
+            user: safeUser
+        });
+    } catch (error) {
+        console.error("Fehler beim getAuthProfile:", error);
+        return res.status(500).json({
+            message: "Es ist ein Fehler beim Laden des Profils aufgetreten"
         });
     }
 };
