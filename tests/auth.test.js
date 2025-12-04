@@ -1,8 +1,16 @@
 // Tests für die Authentifizierungs-Routen (Register & Login)
 
 import request from "supertest";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import app from "../src/app.js";
+import { User } from "../src/models/User.js";
+
+
+// Vor jedem Test alle User entfernen, damit die Tests unabhängig voneinander sind
+beforeEach(async () => {
+    await User.deleteMany({});
+});
+
 
 
 describe("Auth-Routen", () => {
@@ -14,7 +22,7 @@ describe("Auth-Routen", () => {
                 password: "TestPass123!"
             };
 
-
+            
             const response = await request(app)
                 .post("/auth/register")
                 .send(newUser);

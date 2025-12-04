@@ -3,9 +3,14 @@
 import express from "express";
 import gamesRoutes from "./routes/gamesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import { connectDB } from "./services/connectDB.js";
 
 
 const app = express();
+
+
+// Datenbankverbindung herstellen 
+connectDB();
 
 
 // Middleware
