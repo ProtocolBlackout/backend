@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "node --env-file=.env --watch src/server.js",
-    "test": "node --env-file=.env node_modules/vitest/vitest.mjs"
+    "test": "node --env-file=.env node_modules/vitest/vitest.mjs --no-file-parallelism"
+  },
+  "scriptsInfo": {
+  "test": "--no-file-parallelism sorgt dafür, dass Vitest Testdateien nicht parallel ausführt, sondern nacheinander"
   },
   "repository": {
     "type": "git",

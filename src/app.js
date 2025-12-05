@@ -3,6 +3,7 @@
 import express from "express";
 import gamesRoutes from "./routes/gamesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
 import { connectDB } from "./services/connectDB.js";
 
 
@@ -29,6 +30,11 @@ app.use("/games", gamesRoutes);
 
 // Auth-Route für Login & Registrierung
 app.use("/auth", authRoutes);
+
+
+// Profile-Routen für eingeloggte User
+app.use("/profile", profileRoutes);
+
 
 
 export default app;
