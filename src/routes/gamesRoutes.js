@@ -1,6 +1,7 @@
-// Öffentliche Games-Routen mit statischen Mock-Daten
+// Games-Routen mit Mock-Daten (öffentlich + geschützte Ergebnis-Route)
 
 import { Router } from "express";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 
 const router = Router();
@@ -50,6 +51,49 @@ router.get("/:id", (req, res) => {
     }
 
     res.status(200).json(game);
+});
+
+
+// POST /games/:id/result - Spielergebnis speichern (geschützte Route)
+router.post("/:id/result", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const { score } = req.body;
+
+    const game = games.find(currentGame => currentGame.id === id);
+
+    // Wenn das Game nicht existiert, 404 zurückgeben
+    if (!game) {
+        return res.status(404).json({
+            message: "Game nicht gefunden!"
+        });
+    }
+
+
+    // User aus der authMiddleware (Mongoose-Dokument)
+    const user = req.user;
+
+
+    // Score für XP verwenden (Fallback 0, falls nichts oder falscher Typ gesendet wird)
+    const numericScore = typeof score === "number" ? score : 0;
+
+
+    // XP erhöhen
+    user.xp += numericScore;
+
+
+    // Game nur hinzufügen, wenn noch nicht vorhanden
+    if (!user.completedGames.includes(id)) {
+        user.completedGames.push(id);
+    }
+
+    // Änderungen speichern
+    await user.save();
+
+
+    // Antwort wie im Test erwartet
+    res.status(200).json({
+        message: "Ergebnis gespeichert (MVP-Platzhalter)"
+    });
 });
 
 
