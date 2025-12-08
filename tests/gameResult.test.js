@@ -115,4 +115,76 @@ describe("POST /games/:id/result", () => {
         expect(updatedUser.completedGames).toContain("1");
         expect(updatedUser.completedGames.length).toBe(1);
     });
+
+
+    it("erhöht XP und Level korrekt bei mehreren Ergebnissen für das selbe Game", async () => {
+        const userData = {
+            username: "multirunuser",
+            email: "multirunuser@example.com",
+            password: "MultiRunPass123!"
+        };
+
+        // Zuerst registrieren
+        const registerResponse = await request(app)
+            .post("/auth/register")
+            .send(userData);
+        
+        expect(registerResponse.status).toBe(201);
+
+
+        // Dann einloggen, um ein gültiges Token zu erhalten
+        const loginResponse = await request(app)
+            .post("/auth/login")
+            .send({
+                email: userData.email,
+                password: userData.password
+            });
+
+        expect(loginResponse.status).toBe(200);
+        const token = loginResponse.body.token;
+
+        const firstScore = 60;
+        const secondScore = 50;
+
+
+        // Erstes Ergebnis für ein existierendes Game senden
+        const firstResultResponse = await request(app)
+            .post("/games/1/result")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                score: firstScore
+            });
+        
+        expect(firstResultResponse.status).toBe(200);
+
+
+        // Zweites Ergebnis für das selbe Game senden
+        const secondResultResponse = await request(app)
+            .post("/games/1/result")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                score: secondScore
+            });
+
+        expect(secondResultResponse.status).toBe(200);
+
+
+        // User aus der DB laden und Fortschritt prüfen
+        const updatedUser = await User.findOne({ email: userData.email });
+
+        expect(updatedUser).not.toBeNull();
+
+
+        // XP sollte die Summe aus beiden Scores sein
+        expect(updatedUser.xp).toBe(firstScore + secondScore);
+
+
+        // 60 + 50 = 110 XP -> Level 2 laut getLevelForXp
+        expect(updatedUser.level).toBe(2);
+
+
+        // completedGames soll das Game nur einmal enthalten
+        expect(updatedUser.completedGames).toContain("1");
+        expect(updatedUser.completedGames.length).toBe(1);
+    });
 });
