@@ -71,6 +71,10 @@ export const getProfileProgress = (req, res) => {
         }
 
 
+        // Abgeschlossene Games aus dem User-Objekt (falls vorhanden, sonst leeres Array)
+        const completedGames = Array.isArray(req.user.completedGames) ? req.user.completedGames : [];
+
+
         // Platzhalter-Liste für absolvierte Spiele (wird später mit echten Daten gefüllt)
         const progress = {
             level: userLevel,
@@ -78,7 +82,7 @@ export const getProfileProgress = (req, res) => {
             nextLevelXp: nextLevelStartXp, 
             xpToNextLevel, 
             xpIntoCurrentLevel,
-            completedGames: []
+            completedGames
         };
 
         return res.status(200).json({
