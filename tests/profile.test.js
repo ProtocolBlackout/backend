@@ -65,6 +65,8 @@ describe("Profil-Routen", () => {
                 expect(user).toHaveProperty("id");
                 expect(user).toHaveProperty("username", userData.username);
                 expect(user).toHaveProperty("email", userData.email);
+                expect(user).toHaveProperty("xp", 0);
+                expect(user).toHaveProperty("level", 1);
         });
     });
 
@@ -121,6 +123,8 @@ describe("Profil-Routen", () => {
             expect(progress).toHaveProperty("level", 1);
             expect(progress).toHaveProperty("xp", 0);
             expect(progress).toHaveProperty("nextLevelXp", 100);
+            expect(progress).toHaveProperty("xpToNextLevel", 100);
+            expect(progress).toHaveProperty("xpIntoCurrentLevel", 0);
             expect(progress).toHaveProperty("completedGames");
             expect(Array.isArray(progress.completedGames)).toBe(true);
         });
