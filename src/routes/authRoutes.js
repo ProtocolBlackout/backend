@@ -1,7 +1,7 @@
-// Routen für die Authentifizierung (Register & Login)
+// Routen für die Authentifizierung (Register, Login & Profil)
 
 import express from "express";
-import { registerUser, loginUser, getAuthProfile } from "../controllers/authController.js";
+import { registerUser, loginUser, getAuthProfile, deleteAuthProfile } from "../controllers/authController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
 
@@ -11,6 +11,7 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 
 router.get("/profile", authMiddleware, getAuthProfile);
+router.delete("/profile", authMiddleware, deleteAuthProfile);
 
 
 export default router;

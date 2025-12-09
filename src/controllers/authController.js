@@ -143,3 +143,37 @@ export const getAuthProfile = (req, res) => {
         });
     }
 };
+
+
+// Profil des eingeloggten Users löschen
+export const deleteAuthProfile = async (req, res) => {
+    try {
+        // Falls aus irgendeinem Grund kein User am Request hängt
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Nicht autorisiert"
+            });
+        }
+
+
+        // User über die ID aus dem Token löschen
+        const deletedUser = await User.findByIdAndDelete(req.user._id);
+
+
+        // Falls der User nicht gefunden wurde (sollte im Normalfall nicht vorkommen)
+        if (!deletedUser) {
+            return res.status(404).json({
+                message: "User wurde nicht gefunden"
+            });
+        }
+
+        return res.status(200).json({
+            message: "Profil erfolgreich gelöscht"
+        });
+    } catch (error) {
+        console.error("Fehler beim deleteAuthProfile:", error);
+        return res.status(500).json({
+            message: "Es ist ein Fehler beim Löschen des Profils aufgetreten"
+        });
+    }
+};
