@@ -3,23 +3,23 @@
 import mongoose from "mongoose";
 
 export async function connectDB() {
-    const mongoUrl = process.env.MONGODB_URL;
-    const dbName = process.env.DATABASE;
+  const mongoUrl = process.env.MONGODB_URL;
+  const dbName = process.env.DATABASE;
 
-    if (!mongoUrl) {
-        // Genau dieser Text wird im Test erwartet!
-        throw new Error("MONGODB_URL ist nicht gesetzt");
-    }
-
+  if (!mongoUrl) {
     // Genau dieser Text wird im Test erwartet!
-    if (!dbName) {
-        throw new Error("DATABASE ist nicht gesetzt");
-    }
+    throw new Error("MONGODB_URL ist nicht gesetzt");
+  }
 
-    // Verbindung zu MongoDB
-    await mongoose.connect(mongoUrl, {
-        dbName: dbName
-    });
+  // Genau dieser Text wird im Test erwartet!
+  if (!dbName) {
+    throw new Error("DATABASE ist nicht gesetzt");
+  }
 
-    console.log("Mit MongoDB verbunden");
+  // Verbindung zu MongoDB
+  await mongoose.connect(mongoUrl, {
+    dbName: dbName
+  });
+
+  console.log("Mit MongoDB verbunden");
 }
