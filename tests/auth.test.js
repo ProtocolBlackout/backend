@@ -1,4 +1,4 @@
-// Tests für die Authentifizierungs-Routen (Register & Login)
+// Tests für die Authentifizierungs-Routen (Register, Login & Profil)
 
 import request from "supertest";
 import { describe, it, expect, beforeEach } from "vitest";
@@ -188,6 +188,58 @@ describe("Auth-Routen", () => {
             expect(user).toHaveProperty("id");
             expect(user).toHaveProperty("username", userData.username);
             expect(user).toHaveProperty("email", userData.email);
+        });
+    });
+
+
+    describe("DELETE /auth/profile", () => {
+        it("gibt 401 zurück, wenn kein Token gesendet wird", async () => {
+            const response = await request(app).delete("/auth/profile");
+
+            expect(response.status).toBe(401);
+            expect(response.body).toHaveProperty("message", "Nicht autorisiert");
+        });
+
+        it("löscht den eingeloggten User und gibt eine Erfolgsmeldung zurück", async () => {
+            const userData = {
+                username: "deleteuser",
+                email: "deleteuser@example.com",
+                password: "DeletePass123!"
+            };
+
+            // Zuerst registrieren, damit der User existiert
+            const registerResponse = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            
+            expect(registerResponse.status).toBe(201);
+
+
+            // Dann einloggen, um ein gültiges Token zu erhalten
+            const loginResponse = await request(app)
+                .post("/auth/login")
+                .send({
+                    email: userData.email,
+                    password: userData.password
+                });
+
+                expect(loginResponse.status).toBe(200);
+                const token = loginResponse.body.token;
+            
+            
+            // Account-Löschroute mit Bearer-Token aufrufen
+            const deleteResponse = await request(app)
+                .delete("/auth/profile")
+                .set("Authorization", `Bearer ${token}`);
+
+            expect(deleteResponse.status).toBe(200);
+            expect(deleteResponse.body).toHaveProperty("message", "Profil erfolgreich gelöscht");
+
+
+            // Prüfen, ob der User in der DB nicht mehr existiert
+            const deletedUser = await User.findOne({ email: userData.email });
+            
+            expect(deletedUser).toBeNull();
         });
     });
 });
