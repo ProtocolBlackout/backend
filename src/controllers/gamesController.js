@@ -1,27 +1,39 @@
 // Games-Controller mit Mock-Daten und Ergebnis-Logik
 
-// Mock-Daten für Games (später können diese aus der DB kommen)
+// Mock-Daten für Games (Demo-Games + erste echte Projekt-Games)
+// Die ersten drei Einträge sind Demo-Games für Entwicklung und Tests.
+// Weitere Einträge (z. B. quiz-01) sind echte Projekt-Games.
 const games = [
   {
     id: "1",
-    title: "Terminal Breach",
-    description: "Simulierter Einbruch in ein altes Terminalsystem.",
+    title: "Terminal Breach (Demo)",
+    description: "Demo-Game für Backend-Routen und Tests.",
     difficulty: "medium",
-    category: "network"
+    category: "demo"
   },
   {
     id: "2",
-    title: "Cipher Rush",
-    description: "Kleine Cryptorätsel mit Zeitdruck.",
+    title: "Cipher Rush (Demo)",
+    description: "Demo-Game für Backend-Routen und Tests.",
     difficulty: "easy",
-    category: "crypto"
+    category: "demo"
   },
   {
     id: "3",
-    title: "Log Analyzer",
-    description: "Logfiles nach verdächtigen Einträgen durchsuchen.",
+    title: "Log Analyzer (Demo)",
+    description: "Demo-Game für Backend-Routen und Tests.",
     difficulty: "hard",
-    category: "forensics"
+    category: "demo"
+  },
+  {
+    id: "quiz-01",
+    title: "Cybersecurity Quiz – Basics",
+    description: "Beantworte 10 Fragen rund um grundlegende IT-Security.",
+    difficulty: "easy",
+    category: "quiz",
+    xpReward: 50,
+    maxTimeSeconds: 120,
+    minScoreForWin: 7
   }
 ];
 
@@ -47,7 +59,7 @@ function getLevelForXp(xp) {
 
 // GET /games - Liste aller Games
 export const getAllGames = (req, res) => {
-  // Gibt die komplette Liste der Mock-Games zurück
+  // Gibt die komplette Liste der Games zurück
   res.status(200).json(games);
 };
 
@@ -82,13 +94,13 @@ export const saveGameResult = async (req, res) => {
   // User aus der authMiddleware (Mongoose-Dokument)
   const user = req.user;
 
-  // Score für XP verwenden (Fallback 0, falls nichts, oder falscher Typ gesendet wird)
+  // Score für XP verwenden (Fallback 0, falls nichts oder falscher Typ gesendet wird)
   const numericScore = typeof score === "number" ? score : 0;
 
-  // Aktuelles MVP-Verhalten
+  // Aktuelles MVP-Verhalten:
   // - Jeder gespielte Run (egal wie oft) gibt XP (numericScore)
   // - completedGames enthält jedes Game maximal einmal
-  // -> Später kann Team entscheiden, ob nur der erste Abschluss XP geben soll
+  // -> Später kann das Team entscheiden, ob nur der erste Abschluss XP geben soll
 
   // XP erhöhen
   user.xp += numericScore;
