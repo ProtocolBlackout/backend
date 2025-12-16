@@ -3,24 +3,42 @@ import mongoose from "mongoose";
 const questionSchema = new mongoose.Schema({
   id: {
     type: Number,
-    required: true
+    required: true,
+    unique: true,
+  },
+  gameId: {
+    type: String,
+    required: true,
+    default: "quiz-01",
   },
   category: {
     type: String,
-    required: true
+    required: true,
   },
+  // Der eigentliche Fragetext
   question: {
     type: String,
-    required: true
+    required: true,
   },
+  // Richtige Antwort als String (kompatibel zu älteren Versionen)
   answer: {
     type: String,
-    required: true
   },
+  // Alternativen/Antwort-Optionen
   options: {
     type: [String],
-    required: true
-  }
+    required: true,
+  },
+  // Optional: richtiger Index innerhalb von `options` (praktisch fürs Frontend)
+  correctIndex: {
+    type: Number,
+  },
 });
 
-export const Question = mongoose.model("Question", questionSchema);
+// Verwende explizit die Collection 'quizQuestion', falls die Daten bereits
+// in dieser Collection importiert wurden (z. B. via mongoimport --collection quizQuestion).
+export const Question = mongoose.model(
+  "Question",
+  questionSchema,
+  "quizQuestion"
+);
