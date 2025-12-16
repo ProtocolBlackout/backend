@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "node --env-file=.env --watch src/server.js",
     "test": "node --env-file=.env node_modules/vitest/vitest.mjs --no-file-parallelism",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "scriptsInfo": {
-  "test": "--no-file-parallelism sorgt dafür, dass Vitest Testdateien nicht parallel ausführt, sondern nacheinander"
+    "test": "--no-file-parallelism sorgt dafür, dass Vitest Testdateien nicht parallel ausführt, sondern nacheinander"
   },
   "repository": {
     "type": "git",
@@ -31,6 +33,7 @@
     "mongoose": "^9.0.0"
   },
   "devDependencies": {
+    "prettier": "^3.7.4",
     "supertest": "^7.1.4",
     "vitest": "^3.2.4"
   }
