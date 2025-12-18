@@ -4,6 +4,7 @@ import express from "express";
 import gamesRoutes from "./routes/gamesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
+import mailRoutes from "./routes/mailRoutes.js";
 import { connectDB } from "./services/connectDB.js";
 
 const app = express();
@@ -27,5 +28,8 @@ app.use("/auth", authRoutes);
 
 // Profile-Routen für eingeloggte User
 app.use("/profile", profileRoutes);
+
+// Mail-Routen für eingeloggte User
+app.use("/mail", mailRoutes);
 
 export default app;
