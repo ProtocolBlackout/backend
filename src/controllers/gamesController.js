@@ -1,5 +1,7 @@
 // Games-Controller mit Mock-Daten und Ergebnis-Logik
 
+import { Question } from "../models/QuizQuestion.js";
+
 // Mock-Daten für Games (Demo-Games + erste echte Projekt-Games)
 // Die ersten drei Einträge sind Demo-Games für Entwicklung und Tests.
 // Weitere Einträge (z. B. quiz-01) sind echte Projekt-Games.
@@ -120,4 +122,59 @@ export const saveGameResult = async (req, res) => {
   res.status(200).json({
     message: "Ergebnis gespeichert (MVP-Platzhalter)"
   });
+};
+
+// GET /games/:id/questions - liefert eine Auswahl von (max.) 10 Fragen für ein Game
+export const getQuestionsForQuiz = async (req, res) => {
+  const { id } = req.params; // erwartet gameId wie 'quiz-01' oder "1" je nach Verwendung
+
+  try {
+    // Versuche, 10 zufällige Fragen aus der DB zu holen, die zur gameId passen
+    let questions = await Question.aggregate([
+      { $match: { gameId: id } },
+      { $sample: { size: 10 } },
+    ]);
+
+    // Wenn keine Fragen für die konkrete gameId existieren, versuche mit Kategorie "quiz"
+    if ((!questions || questions.length === 0) && id) {
+      questions = await Question.aggregate([
+        { $match: { category: "quiz" } },
+        { $sample: { size: 10 } },
+      ]);
+    }
+
+    if (!questions || questions.length === 0) {
+      return res.status(404).json({ message: "Fragen nicht gefunden" });
+    }
+
+    // Debug-Logging (kann bei Bedarf entfernt werden):
+    try {
+      const ids = questions.map((q) => q.id || q._id).slice(0, 5);
+      console.log(
+        `GET /games/${id}/questions -> ${
+          questions.length
+        } docs (sample ids: ${JSON.stringify(ids)})`
+      );
+    } catch (e) {
+      // ignore logging errors
+    }
+
+    // Mappe DB-Form in das Frontend-freundliche Format
+    const mapped = questions.map((q) => ({
+      gameId: q.gameId || id,
+      questionText: q.question,
+      answers: q.options,
+      correctIndex:
+        typeof q.correctIndex === "number"
+          ? q.correctIndex
+          : q.options
+          ? q.options.indexOf(q.answer)
+          : -1,
+    }));
+
+    return res.status(200).json(mapped);
+  } catch (error) {
+    console.error("Fehler beim Laden der Fragen:", error);
+    return res.status(500).json({ message: "Fehler beim Laden der Fragen" });
+  }
 };

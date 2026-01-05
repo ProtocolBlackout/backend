@@ -1,6 +1,7 @@
 // Zentrale Express-App für das Backend
 
 import express from "express";
+import cors from "cors";
 import gamesRoutes from "./routes/gamesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
@@ -14,6 +15,9 @@ connectDB();
 
 // Middleware
 app.use(express.json());
+
+// CORS erlauben (Frontend kann von anderem Origin anfragen)
+app.use(cors());
 
 // Health-Route für Systemcheck
 app.get("/health", (req, res) => {

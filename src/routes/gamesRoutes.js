@@ -5,13 +5,18 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 import {
   getAllGames,
   getGameById,
-  saveGameResult
+  saveGameResult,
+  getQuestionsForQuiz
 } from "../controllers/gamesController.js";
+
 
 const router = Router();
 
 // GET /games - Liste aller Games
 router.get("/", getAllGames);
+
+// GET /games/:id/questions - 10 zufällige Fragen für das Game
+router.get("/:id/questions", getQuestionsForQuiz);
 
 // GET /games/:id - einzelnes Game, oder 404
 router.get("/:id", getGameById);
