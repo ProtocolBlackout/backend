@@ -1,5 +1,7 @@
 // Games-Controller mit Mock-Daten und Ergebnis-Logik
 
+import { Question } from "../models/QuizQuestion.js";
+
 // Mock-Daten für Games (Demo-Games + erste echte Projekt-Games)
 // Die ersten drei Einträge sind Demo-Games für Entwicklung und Tests.
 // Weitere Einträge (z. B. quiz-01) sind echte Projekt-Games.
