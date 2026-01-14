@@ -4,30 +4,20 @@ import request from "supertest";
 import { describe, it, expect, beforeEach, beforeAll, vi } from "vitest";
 import { User } from "../src/models/User.js";
 
-const sendMailMock = vi.fn(); // Wir ersetzen sendMail durch eine Test-Funktion, um Aufrufe prüfen zu können
-const createTransportMock = vi.fn(() => {
+// Wir mocken den Mail-Service, damit KEINE echte Mail verschickt wird
+const sendMailMock = vi.fn();
+
+vi.mock("../src/services/mailService.js", () => {
   return {
     sendMail: sendMailMock
-  };
-});
-
-vi.mock("nodemailer", () => {
-  return {
-    default: {
-      createTransport: createTransportMock
-    }
   };
 });
 
 let app;
 
 beforeAll(async () => {
-  // SMTP-Werte für Tests festsetzen, damit der Controller nicht wegen fehlender .env abbricht
-  process.env.SMTP_HOST = "mail.infomaniak.com";
-  process.env.SMTP_PORT = "587";
-  process.env.SMTP_USER = "test@example.com";
-  process.env.SMTP_PASS = "testpass";
-  process.env.SMTP_FROM = "test@example.com";
+  // Empfänger-Adresse für /mail/test festlegen (Controller nutzt GMAIL_FROM bevorzugt)
+  process.env.GMAIL_FROM = "prot.blackout@gmail.com";
 
   const importedApp = await import("../src/app.js");
   app = importedApp.default;
@@ -37,7 +27,6 @@ beforeAll(async () => {
 beforeEach(async () => {
   await User.deleteMany({});
   sendMailMock.mockReset();
-  createTransportMock.mockClear();
 });
 
 describe("Mail-Routen", () => {
@@ -50,6 +39,9 @@ describe("Mail-Routen", () => {
     });
 
     it("sendet eine Test-Mail, wenn ein gültiger Token gesendet wird", async () => {
+      // Mailversand im Service als erfolgreich simulieren
+      sendMailMock.mockResolvedValueOnce();
+
       const userData = {
         username: "mailuser",
         email: "mailuser@example.com",
@@ -83,26 +75,12 @@ describe("Mail-Routen", () => {
         "Test-Mail wurde versendet"
       );
 
-      // Prüfen, ob Nodemailer genutzt wurde
-      expect(createTransportMock).toHaveBeenCalledTimes(1);
+      // Prüfen, ob unser Mail-Service genutzt wurde
       expect(sendMailMock).toHaveBeenCalledTimes(1);
-
-      expect(createTransportMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT),
-          secure: false,
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          }
-        })
-      );
-
       expect(sendMailMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: process.env.SMTP_FROM,
-          to: process.env.SMTP_USER
+          to: process.env.GMAIL_FROM,
+          subject: "Protocol Blackout - Mail-Test"
         })
       );
     });
