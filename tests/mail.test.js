@@ -40,7 +40,7 @@ describe("Mail-Routen", () => {
 
     it("sendet eine Test-Mail, wenn ein gültiger Token gesendet wird", async () => {
       // Mailversand im Service als erfolgreich simulieren
-      sendMailMock.mockResolvedValueOnce();
+      sendMailMock.mockResolvedValue();
 
       const userData = {
         username: "mailuser",
@@ -63,6 +63,10 @@ describe("Mail-Routen", () => {
 
       expect(loginResponse.status).toBe(200);
       const token = loginResponse.body.token;
+
+      // Welcome-Mail aus /auth/register aus der Call-History rausnehmen,
+      // damit wir hier nur den Aufruf von /mail/test prüfen
+      sendMailMock.mockClear();
 
       // Geschützte Mail-Route mit Bearer-Token aufrufen
       const mailResponse = await request(app)
