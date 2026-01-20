@@ -2,6 +2,7 @@
 import bcrypt from "bcrypt";
 import { User } from "../models/User.js";
 import { signToken } from "../services/jwtService.js";
+import { sendMail } from "../services/mailService.js";
 
 // Registrierung eines neuen Users
 export const registerUser = async (req, res) => {
@@ -33,6 +34,21 @@ export const registerUser = async (req, res) => {
       email,
       passwordHash
     });
+
+    // Welcome-Mail senden (darf Registrierung nicht blockieren)
+    try {
+      await sendMail({
+        to: createdUser.email,
+        subject: "Willkommen bei Protocol Blackout",
+        text:
+          `Hi ${createdUser.username}!\n\n` +
+          "Willkommen bei Protocol Blackout. Deine Registrierung war erfolgreich.\n\n" +
+          "Viel Spaß beim Spielen!\n" +
+          "— Dein Protocol Blackout Team"
+      });
+    } catch (mailError) {
+      console.error("Fehler beim Welcome-Mailversand:", mailError);
+    }
 
     // Nur sichere Daten zurückgeben
     const safeUser = {
