@@ -1,12 +1,24 @@
 // Tests für die Authentifizierungs-Routen (Register, Login, Profil & Account-Löschung)
 
 import request from "supertest";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
+// Mock MUSS vor app-Import kommen
+vi.mock("../src/services/mailService.js", () => {
+  return {
+    sendMail: vi.fn(async () => {
+      return { ok: true };
+    })
+  };
+});
+
 import app from "../src/app.js";
 import { User } from "../src/models/User.js";
+import { sendMail } from "../src/services/mailService.js";
 
 // Vor jedem Test alle User entfernen, damit die Tests unabhängig voneinander sind
 beforeEach(async () => {
+  vi.clearAllMocks();
   await User.deleteMany({});
 });
 
@@ -35,6 +47,45 @@ describe("Auth-Routen", () => {
       expect(user).toHaveProperty("email", newUser.email);
       expect(user).not.toHaveProperty("password");
       expect(user).not.toHaveProperty("passwordHash");
+    });
+
+    it("verschickt bei erfolgreicher Registrierung eine Mail (Mock)", async () => {
+      const newUser = {
+        username: "mailuser",
+        email: "mailuser@example.com",
+        password: "TestPass123!"
+      };
+
+      const response = await request(app).post("/auth/register").send(newUser);
+
+      expect(response.status).toBe(201);
+      expect(sendMail).toHaveBeenCalledTimes(1);
+
+      const mailArgs = sendMail.mock.calls[0][0];
+      expect(mailArgs).toHaveProperty("to", newUser.email);
+    });
+
+    it("verschickt bei Registrierung einen Verify-Link mit Token", async () => {
+      const newUser = {
+        username: "verifyuser",
+        email: "verifyuser@example.com",
+        password: "TestPass123!"
+      };
+
+      const response = await request(app).post("/auth/register").send(newUser);
+
+      expect(response.status).toBe(201);
+      expect(sendMail).toHaveBeenCalledTimes(1);
+
+      const mailArgs = sendMail.mock.calls[0][0];
+
+      // Wir erwarten, dass im Mail-Text ein Verify-Link inkl. Token vorkommt
+      expect(mailArgs).toHaveProperty("text");
+      expect(mailArgs.text).toContain("/auth/verify-email?token=");
+
+      const token = mailArgs.text.split("token=")[1];
+      expect(token).toBeDefined();
+      expect(token.length).toBeGreaterThan(10);
     });
 
     it("gibt 400 zurück, wenn Pflichtfelder fehlen", async () => {

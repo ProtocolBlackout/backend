@@ -1,5 +1,7 @@
 // Controller für die Authentifizierungslogik (Register, Login, Profil & Account-Löschung)
+
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { User } from "../models/User.js";
 import { signToken } from "../services/jwtService.js";
 import { sendMail } from "../services/mailService.js";
@@ -35,6 +37,15 @@ export const registerUser = async (req, res) => {
       passwordHash
     });
 
+    // Token für Verify-Link erzeugen (Wird später in der Verify-Route geprüft)
+    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+
+    // Basis-URL für den Link: im Deployment per ENV setzen, lokal fallback auf localhost
+    const baseUrl = process.env.BACKEND_PUBLIC_URL || "http://localhost:3000";
+
+    // Link, den der User per Mail bekommt, um seine E-Mail zu verifizieren
+    const verifyLink = `${baseUrl}/auth/verify-email?token=${emailVerificationToken}`;
+
     // Welcome-Mail senden (darf Registrierung nicht blockieren)
     try {
       await sendMail({
@@ -43,6 +54,7 @@ export const registerUser = async (req, res) => {
         text:
           `Hi ${createdUser.username}!\n\n` +
           "Willkommen bei Protocol Blackout. Deine Registrierung war erfolgreich.\n\n" +
+          `Bitte verifiziere deine E-Mail über diesen Link:\n${verifyLink}\n\n` +
           "Viel Spaß beim Spielen!\n" +
           "— Dein Protocol Blackout Team"
       });
