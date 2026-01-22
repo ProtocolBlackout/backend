@@ -83,7 +83,11 @@ describe("Auth-Routen", () => {
       expect(mailArgs).toHaveProperty("text");
       expect(mailArgs.text).toContain("/auth/verify-email?token=");
 
-      const token = mailArgs.text.split("token=")[1];
+      // Token aus dem Mail-Text ziehen:
+      // - split("token=")[1] nimmt alles NACH "token="
+      // - split(/[&\s]/)[0] schneidet bei "&" ODER Leerzeichen/Zeilenumbruch ab
+      const token = mailArgs.text.split("token=")[1].split(/[&\s]/)[0];
+
       expect(token).toBeDefined();
       expect(token.length).toBeGreaterThan(10);
     });
@@ -174,6 +178,66 @@ describe("Auth-Routen", () => {
         "message",
         "E-Mail oder Passwort ist ungültig"
       );
+    });
+  });
+
+  describe("GET /auth/verify-email", () => {
+    it("gibt 400 zurück, wenn kein Token gesendet wird", async () => {
+      const response = await request(app).get("/auth/verify-email");
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty("message", "Token fehlt");
+    });
+
+    it("gibt 400 zurück, wenn der Token ungültig ist", async () => {
+      const response = await request(app).get(
+        "/auth/verify-email?token=ungueltig"
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty(
+        "message",
+        "Token ist ungültig oder abgelaufen"
+      );
+    });
+
+    it("verifiziert die E-Mail, wenn ein gültiger Token gesendet wird", async () => {
+      const newUser = {
+        username: "verifyflowuser",
+        email: "verifyflowuser@example.com",
+        password: "TestPass123!"
+      };
+
+      const registerResponse = await request(app)
+        .post("/auth/register")
+        .send(newUser);
+
+      expect(registerResponse.status).toBe(201);
+      expect(sendMail).toHaveBeenCalledTimes(1);
+
+      const mailArgs = sendMail.mock.calls[0][0];
+      expect(mailArgs).toHaveProperty("text");
+      expect(mailArgs.text).toContain("/auth/verify-email?token=");
+
+      // Token aus dem Mail-Text ziehen (Erklärung siehe oben Register-Test)
+      const token = mailArgs.text.split("token=")[1].split(/[&\s]/)[0];
+
+      const verifyResponse = await request(app).get(
+        `/auth/verify-email?token=${token}`
+      );
+
+      expect(verifyResponse.status).toBe(200);
+      expect(verifyResponse.body).toHaveProperty(
+        "message",
+        "E-Mail erfolgreich verifiziert"
+      );
+
+      const updatedUser = await User.findOne({ email: newUser.email });
+
+      expect(updatedUser).not.toBeNull();
+      expect(updatedUser.isEmailVerified).toBe(true);
+      expect(updatedUser.emailVerificationTokenHash).toBeNull();
+      expect(updatedUser.emailVerificationTokenExpires).toBeNull();
     });
   });
 

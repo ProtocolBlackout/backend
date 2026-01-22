@@ -5,15 +5,19 @@ import {
   registerUser,
   loginUser,
   getAuthProfile,
-  deleteAuthProfile
+  deleteAuthProfile,
+  verifyEmail
 } from "../controllers/authController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+// Öffentliche Routen (ohne Login)
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.get("/verify-email", verifyEmail);
 
+// Geschützte Routen (Login erforderlich)
 router.get("/profile", authMiddleware, getAuthProfile);
 router.delete("/profile", authMiddleware, deleteAuthProfile);
 
