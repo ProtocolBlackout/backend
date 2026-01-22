@@ -1,9 +1,20 @@
 // Tests für das Speichern von Spielergebnissen (geschützte Route)
 
 import request from "supertest";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
+// Wir mocken den Mail-Service, damit KEINE echte Mail verschickt wird
+vi.mock("../src/services/mailService.js", () => {
+  return {
+    sendMail: vi.fn(async () => {
+      return { ok: true };
+    })
+  };
+});
+
 import app from "../src/app.js";
 import { User } from "../src/models/User.js";
+import { sendMail } from "../src/services/mailService.js";
 
 // Vor jedem Test alle User entfernen, damit die Tests unabhängig sind
 beforeEach(async () => {

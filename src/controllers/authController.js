@@ -40,6 +40,22 @@ export const registerUser = async (req, res) => {
     // Token für Verify-Link erzeugen (Wird später in der Verify-Route geprüft)
     const emailVerificationToken = crypto.randomBytes(32).toString("hex");
 
+    // Token-Hash + Ablauf speichern (Token selbst wird nur per Mail verschickt)
+    const emailVerificationTokenHash = crypto
+      .createHash("sha256")
+      .update(emailVerificationToken)
+      .digest("hex");
+
+    // Ablaufzeit: 24 Stunden (kann später ggf. noch angepasst werden)
+    const emailVerificationTokenExpires = new Date(
+      Date.now() + 24 * 60 * 60 * 1000
+    );
+
+    createdUser.emailVerificationTokenHash = emailVerificationTokenHash;
+    createdUser.emailVerificationTokenExpires = emailVerificationTokenExpires;
+
+    await createdUser.save();
+
     // Basis-URL für den Link: im Deployment per ENV setzen, lokal fallback auf localhost
     const baseUrl = process.env.BACKEND_PUBLIC_URL || "http://localhost:3000";
 
@@ -185,6 +201,47 @@ export const deleteAuthProfile = async (req, res) => {
     console.error("Fehler beim deleteAuthProfile:", error);
     return res.status(500).json({
       message: "Es ist ein Fehler beim Löschen des Profils aufgetreten"
+    });
+  }
+};
+
+// E-Mail-Adresse über Verify-Link verifizieren
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({
+        message: "Token fehlt"
+      });
+    }
+
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      emailVerificationTokenHash: tokenHash,
+      emailVerificationTokenExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Token ist ungültig oder abgelaufen"
+      });
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationTokenHash = null;
+    user.emailVerificationTokenExpires = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "E-Mail erfolgreich verifiziert"
+    });
+  } catch (error) {
+    console.error("Fehler bei verifyEmail:", error);
+    return res.status(500).json({
+      message: "Es ist ein Fehler bei der Verifizierung aufgetreten"
     });
   }
 };
