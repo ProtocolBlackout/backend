@@ -14,10 +14,10 @@ vi.mock("../src/services/mailService.js", () => {
 
 import app from "../src/app.js";
 import { User } from "../src/models/User.js";
-import { sendMail } from "../src/services/mailService.js";
 
 // Vor jeden Test alle User entfernen, damit die Tests unabhängig voneinander sind
 beforeEach(async () => {
+  vi.clearAllMocks();
   await User.deleteMany({});
 });
 
@@ -43,6 +43,12 @@ describe("Profil-Routen", () => {
         .send(userData);
 
       expect(registerResponse.status).toBe(201);
+
+      // User vor dem Login als verifiziert markieren
+      await User.updateOne(
+        { email: userData.email },
+        { $set: { isEmailVerified: true } }
+      );
 
       // Dann einloggen, um ein gültiges Token zu erhalten
       const loginResponse = await request(app).post("/auth/login").send({
@@ -97,6 +103,12 @@ describe("Profil-Routen", () => {
 
       expect(registerResponse.status).toBe(201);
 
+      // User vor dem Login als verifiziert markieren
+      await User.updateOne(
+        { email: userData.email },
+        { $set: { isEmailVerified: true } }
+      );
+
       // Dann einloggen, um ein gültiges Token zu erhalten
       const loginResponse = await request(app).post("/auth/login").send({
         email: userData.email,
@@ -142,6 +154,12 @@ describe("Profil-Routen", () => {
         .send(userData);
 
       expect(registerResponse.status).toBe(201);
+
+      // User vor dem Login als verifiziert markieren
+      await User.updateOne(
+        { email: userData.email },
+        { $set: { isEmailVerified: true } }
+      );
 
       // Einloggen, um ein gültiges Token zu erhalten
       const loginResponse = await request(app).post("/auth/login").send({

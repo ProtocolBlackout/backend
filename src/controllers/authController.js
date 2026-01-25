@@ -112,6 +112,13 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    // Nur verifizierte Accounts dürfen sich einloggen
+    if (existingUser.isEmailVerified !== true) {
+      return res.status(401).json({
+        message: "Bitte verifiziere zuerst deine E-Mail-Adresse"
+      });
+    }
+
     // Passwort prüfen
     const passwordIsValid = await bcrypt.compare(
       password,

@@ -145,6 +145,19 @@ describe("Auth-Routen", () => {
 
       expect(registerResponse.status).toBe(201);
 
+      // User verifizieren (Token aus Welcome-Mail ziehen)
+      expect(sendMail).toHaveBeenCalledTimes(1);
+      const mailArgs = sendMail.mock.calls[0][0];
+      const verificationToken = mailArgs.text
+        .split("token=")[1]
+        .split(/[&\s]/)[0];
+
+      const verifyResponse = await request(app).get(
+        `/auth/verify-email?token=${verificationToken}`
+      );
+
+      expect(verifyResponse.status).toBe(200);
+
       const loginResponse = await request(app).post("/auth/login").send({
         email: userData.email,
         password: userData.password
@@ -156,6 +169,7 @@ describe("Auth-Routen", () => {
       expect(typeof loginResponse.body.token).toBe("string");
       expect(loginResponse.body.token.length).toBeGreaterThan(0);
 
+      // JWT Token bleibt token
       const token = loginResponse.body.token;
       expect(token.split(".").length).toBe(3);
 
@@ -164,6 +178,34 @@ describe("Auth-Routen", () => {
       expect(loginResponse.body.user).toHaveProperty(
         "username",
         userData.username
+      );
+    });
+
+    // Unverifizierter User darf nicht einloggen
+    it("gibt 401 zurück, wenn die E-Mail noch nicht verifiziert ist", async () => {
+      const userData = {
+        username: "unverifieduser",
+        email: "unverifieduser@example.com",
+        password: "LoginPass123!"
+      };
+
+      // Erst registrieren, damit der User existiert
+      const registerResponse = await request(app)
+        .post("/auth/register")
+        .send(userData);
+
+      expect(registerResponse.status).toBe(201);
+
+      // Direkt login versuchen (ohne Verifizierung)
+      const loginResponse = await request(app).post("/auth/login").send({
+        email: userData.email,
+        password: userData.password
+      });
+
+      expect(loginResponse.status).toBe(401);
+      expect(loginResponse.body).toHaveProperty(
+        "message",
+        "Bitte verifiziere zuerst deine E-Mail-Adresse"
       );
     });
 
@@ -263,6 +305,19 @@ describe("Auth-Routen", () => {
 
       expect(registerResponse.status).toBe(201);
 
+      // User verifizieren (Token aus Welcome-Mail ziehen)
+      expect(sendMail).toHaveBeenCalledTimes(1);
+      const mailArgs = sendMail.mock.calls[0][0];
+      const verificationToken = mailArgs.text
+        .split("token=")[1]
+        .split(/[&\s]/)[0];
+
+      const verifyResponse = await request(app).get(
+        `/auth/verify-email?token=${verificationToken}`
+      );
+
+      expect(verifyResponse.status).toBe(200);
+
       // Dann einloggen, um ein gültiges Token zu erhalten
       const loginResponse = await request(app).post("/auth/login").send({
         email: userData.email,
@@ -313,6 +368,19 @@ describe("Auth-Routen", () => {
         .send(userData);
 
       expect(registerResponse.status).toBe(201);
+
+      // User verifizieren (Token aus Welcome-Mail ziehen)
+      expect(sendMail).toHaveBeenCalledTimes(1);
+      const mailArgs = sendMail.mock.calls[0][0];
+      const verificationToken = mailArgs.text
+        .split("token=")[1]
+        .split(/[&\s]/)[0];
+
+      const verifyResponse = await request(app).get(
+        `/auth/verify-email?token=${verificationToken}`
+      );
+
+      expect(verifyResponse.status).toBe(200);
 
       // Dann einloggen, um ein gültiges Token zu erhalten
       const loginResponse = await request(app).post("/auth/login").send({
