@@ -295,6 +295,102 @@ describe("Auth-Routen", () => {
     });
   });
 
+  describe("POST /auth/password-reset/confirm", () => {
+    it("gibt 400 zurück, wenn Token oder Passwort fehlt", async () => {
+      const response = await request(app)
+        .post("/auth/password-reset/confirm")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty(
+        "message",
+        "Token und neues Passwort sind erforderlich"
+      );
+    });
+
+    it("gibt 400 zurück, wenn der Token ungültig ist", async () => {
+      const response = await request(app)
+        .post("/auth/password-reset/confirm")
+        .send({
+          token: "invalid-token",
+          password: "NewPass123!"
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty(
+        "message",
+        "Token ist ungültig oder abgelaufen"
+      );
+    });
+
+    it("setzt das Passwort neu, wenn Token gültig ist und Login klappt mit neuem Passwort", async () => {
+      const userData = {
+        username: "confirmresetuser",
+        email: "confirmresetuser@example.com",
+        password: "OldPass123!"
+      };
+
+      // User registrieren
+      const registerResponse = await request(app)
+        .post("/auth/register")
+        .send(userData);
+
+      expect(registerResponse.status).toBe(201);
+
+      // User verifizieren (Token aus Welcome-Mail ziehen)
+      expect(sendMail).toHaveBeenCalledTimes(1);
+      const welcomeMailArgs = sendMail.mock.calls[0][0];
+      const verificationToken = welcomeMailArgs.text
+        .split("token=")[1]
+        .split(/[&\s]/)[0];
+
+      const verifyResponse = await request(app).get(
+        `/auth/verify-email?token=${verificationToken}`
+      );
+
+      expect(verifyResponse.status).toBe(200);
+
+      // Ab jetzt nur Reset-Mail zählen
+      vi.clearAllMocks();
+
+      // Reset anfordern -> Token aus Reset-Mail ziehen
+      const resetRequestResponse = await request(app)
+        .post("/auth/password-reset/request")
+        .send({ email: userData.email });
+
+      expect(resetRequestResponse.status).toBe(200);
+      expect(sendMail).toHaveBeenCalledTimes(1);
+
+      const resetMailArgs = sendMail.mock.calls[0][0];
+      expect(resetMailArgs.text).toContain("/auth/password-reset?token=");
+
+      const resetToken = resetMailArgs.text
+        .split("token=")[1]
+        .split(/[&\s]/)[0];
+
+      // Confirm: neues Passwort setzen
+      const confirmResponse = await request(app)
+        .post("/auth/password-reset/confirm")
+        .send({ token: resetToken, password: "NewPass123!" });
+
+      expect(confirmResponse.status).toBe(200);
+      expect(confirmResponse.body).toHaveProperty(
+        "message",
+        "Passwort erfolgreich zurückgesetzt"
+      );
+
+      // Login mit neuem Passwort muss funktionieren
+      const loginResponse = await request(app).post("/auth/login").send({
+        email: userData.email,
+        password: "NewPass123!"
+      });
+
+      expect(loginResponse.status).toBe(200);
+      expect(loginResponse.body).toHaveProperty("message", "Login erfolgreich");
+      expect(loginResponse.body).toHaveProperty("token");
+    });
+  });
+
   describe("GET /auth/verify-email", () => {
     it("gibt 400 zurück, wenn kein Token gesendet wird", async () => {
       const response = await request(app).get("/auth/verify-email");

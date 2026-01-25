@@ -5,6 +5,7 @@ import {
   registerUser,
   loginUser,
   requestPasswordReset,
+  confirmPasswordReset,
   getAuthProfile,
   deleteAuthProfile,
   verifyEmail
@@ -17,6 +18,7 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/password-reset/request", requestPasswordReset);
+router.post("/password-reset/confirm", confirmPasswordReset);
 router.get("/verify-email", verifyEmail);
 
 // Geschützte Routen (Login erforderlich)
