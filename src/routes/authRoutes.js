@@ -4,6 +4,7 @@ import express from "express";
 import {
   registerUser,
   loginUser,
+  requestPasswordReset,
   getAuthProfile,
   deleteAuthProfile,
   verifyEmail
@@ -15,6 +16,7 @@ const router = express.Router();
 // Öffentliche Routen (ohne Login)
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.post("/password-reset/request", requestPasswordReset);
 router.get("/verify-email", verifyEmail);
 
 // Geschützte Routen (Login erforderlich)

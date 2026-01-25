@@ -223,6 +223,78 @@ describe("Auth-Routen", () => {
     });
   });
 
+  describe("POST /auth/password-reset/request", () => {
+    it("gibt 400 zurück, wenn keine E-Mail gesendet wird", async () => {
+      const response = await request(app)
+        .post("/auth/password-reset/request")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty(
+        "message",
+        "E-Mail ist erforderlich"
+      );
+    });
+
+    it("gibt 200 zurück und verschickt eine Reset-Mail (Mock), wenn User existiert", async () => {
+      const userData = {
+        username: "resetuser",
+        email: "resetuser@example.com",
+        password: "ResetPass123!"
+      };
+
+      // User anlegen (Mail beim Register ist ok, wir resetten die Mocks danach)
+      const registerResponse = await request(app)
+        .post("/auth/register")
+        .send(userData);
+
+      expect(registerResponse.status).toBe(201);
+
+      // Register-Mail ignorieren: ab jetzt sollen nur Reset-Mail-Calls gezählt werden.
+      vi.clearAllMocks();
+
+      const response = await request(app)
+        .post("/auth/password-reset/request")
+        .send({ email: userData.email });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("message");
+      expect(response.body.message).toContain(
+        "Wenn ein Account mit dieser E-Mail existiert"
+      );
+
+      expect(sendMail).toHaveBeenCalledTimes(1);
+
+      // sendMail ist gemockt: Wir prüfen, welche Mail-Daten (to/text) der Controller baut,
+      // damit der Reset-Link inkl. Token korrekt ist, ohne eine echte Mail zu senden.
+      const mailArgs = sendMail.mock.calls[0][0];
+
+      expect(mailArgs).toHaveProperty("to", userData.email);
+      expect(mailArgs).toHaveProperty("text");
+      expect(mailArgs.text).toContain("/auth/password-reset?token=");
+
+      const token = mailArgs.text.split("token=")[1].split(/[&\s]/)[0];
+
+      expect(token).toBeDefined();
+      expect(token.length).toBeGreaterThan(10);
+    });
+
+    it("gibt 200 zurück mit gleicher Erfolgsmeldung, wenn User nicht existiert", async () => {
+      const response = await request(app)
+        .post("/auth/password-reset/request")
+        .send({ email: "doesnotexist@example.com" });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("message");
+      expect(response.body.message).toContain(
+        "Wenn ein Account mit dieser E-Mail existiert"
+      );
+
+      // Keine Mail verschicken, wenn der User nicht existiert
+      expect(sendMail).toHaveBeenCalledTimes(0);
+    });
+  });
+
   describe("GET /auth/verify-email", () => {
     it("gibt 400 zurück, wenn kein Token gesendet wird", async () => {
       const response = await request(app).get("/auth/verify-email");
