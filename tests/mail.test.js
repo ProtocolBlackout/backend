@@ -55,6 +55,12 @@ describe("Mail-Routen", () => {
 
       expect(registerResponse.status).toBe(201);
 
+      // User vor dem Login als verifiziert markieren
+      await User.updateOne(
+        { email: userData.email },
+        { $set: { isEmailVerified: true } }
+      );
+
       // Dann einloggen, um ein gültiges Token zu erhalten
       const loginResponse = await request(app).post("/auth/login").send({
         email: userData.email,
