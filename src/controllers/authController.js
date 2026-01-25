@@ -223,6 +223,49 @@ export const requestPasswordReset = async (req, res) => {
   }
 };
 
+// Passwort-Reset bestätigen (Token prüfen und neues Passwort setzen)
+export const confirmPasswordReset = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        message: "Token und neues Passwort sind erforderlich"
+      });
+    }
+
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      passwordResetTokenHash: tokenHash,
+      passwordResetTokenExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Token ist ungültig oder abgelaufen"
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    user.passwordHash = passwordHash;
+    user.passwordResetTokenHash = null;
+    user.passwordResetTokenExpires = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Passwort erfolgreich zurückgesetzt"
+    });
+  } catch (error) {
+    console.error("Fehler bei confirmPasswordReset:", error);
+    return res.status(500).json({
+      message: "Es ist ein Fehler beim Passwort-Reset aufgetreten"
+    });
+  }
+};
+
 // Aktuelles User-Profil für eingeloggte User zurückgeben
 export const getAuthProfile = (req, res) => {
   try {
