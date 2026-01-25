@@ -153,6 +153,76 @@ export const loginUser = async (req, res) => {
   }
 };
 
+// Passwort-Reset anfordern (Reset-Link per Mail verschicken)
+export const requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "E-Mail ist erforderlich"
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    // Wichtig!:
+    // Wir geben immer die gleiche Erfolgsmeldung zurück,
+    // damit niemand prüfen kann, ob eine E-Mail bei uns registriert ist (keine E-Mail-Enumeration).
+    if (user) {
+      // Reset-Token erzeugen
+      const passwordResetToken = crypto.randomBytes(32).toString("hex");
+
+      // Token-Hash + Ablauf speichern (Token selbst NICHT speichern)
+      const passwordResetTokenHash = crypto
+        .createHash("sha256")
+        .update(passwordResetToken)
+        .digest("hex");
+
+      // Ablaufzeit: 1 Stunde (kann ggf. noch angepasst werden)
+      const passwordResetTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+      user.passwordResetTokenHash = passwordResetTokenHash;
+      user.passwordResetTokenExpires = passwordResetTokenExpires;
+
+      await user.save();
+
+      // Basis-URL für den Link: im Deployment per ENV setzen, lokal fallback auf localhost
+      const baseUrl = process.env.BACKEND_PUBLIC_URL || "http://localhost:3000";
+
+      // Link, den der User als Mail bekommt, um das Passwort zurückzusetzen
+      // Hinweis: Die eigentliche Passwortänderung passiert später über eine separate Route.
+      const resetLink = `${baseUrl}/auth/password-reset?token=${passwordResetToken}`;
+
+      // Reset-Mail senden (darf den Request nicht blockieren)
+      try {
+        await sendMail({
+          to: user.email,
+          subject: "Passwort zurücksetzen",
+          text:
+            `Hi ${user.username}!\n\n` +
+            "Du hast einen Passwort-Reset angefordert.\n\n" +
+            `Hier ist dein Link zum Zurücksetzen:\n${resetLink}\n\n` +
+            "Wenn du das nicht warst, kannst du diese Mail ignorieren.\n" +
+            "— Dein Protocol Blackout Team"
+        });
+      } catch (mailError) {
+        console.error("Fehler beim Passwort-Reset-Mailversand:", mailError);
+      }
+    }
+
+    return res.status(200).json({
+      message:
+        "Wenn ein Account mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen des Passworts gesendet"
+    });
+  } catch (error) {
+    console.error("Fehler beim requestPasswordReset:", error);
+    return res.status(500).json({
+      message: "Es ist ein Fehler beim Passwort-Reset-Request aufgetreten"
+    });
+  }
+};
+
 // Aktuelles User-Profil für eingeloggte User zurückgeben
 export const getAuthProfile = (req, res) => {
   try {
