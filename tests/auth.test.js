@@ -205,7 +205,7 @@ describe("Auth-Routen", () => {
       expect(loginResponse.status).toBe(401);
       expect(loginResponse.body).toHaveProperty(
         "message",
-        "Bitte verifiziere zuerst deine E-Mail-Adresse"
+        "E-Mail oder Passwort ist ungültig"
       );
     });
 
