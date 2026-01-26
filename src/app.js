@@ -17,7 +17,31 @@ connectDB();
 app.use(express.json());
 
 // CORS erlauben (Frontend kann von anderem Origin anfragen)
-app.use(cors());
+const allowedOrigins = [
+  process.env.FRONTEND_PUBLIC_URL,
+  "http://localhost:5173"
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Wenn kein Origin vorhanden ist (z.B. Postman/Thunderclient), erlauben wir es
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
 
 // Health-Route für Systemcheck
 app.get("/health", (req, res) => {
