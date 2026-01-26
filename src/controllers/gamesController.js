@@ -1,6 +1,8 @@
 // Games-Controller mit Mock-Daten und Ergebnis-Logik
 
 import { Question } from "../models/QuizQuestion.js";
+import PasswordTarget from "../models/PasswordTarget.js";
+
 
 // Mock-Daten für Games (Demo-Games + erste echte Projekt-Games)
 // Die ersten drei Einträge sind Demo-Games für Entwicklung und Tests.
@@ -176,5 +178,23 @@ export const getQuestionsForQuiz = async (req, res) => {
   } catch (error) {
     console.error("Fehler beim Laden der Fragen:", error);
     return res.status(500).json({ message: "Fehler beim Laden der Fragen" });
+  }
+};
+
+export const getPasswordGameConfig = async (req, res) => {
+  try {
+    // Holt einfach alles, was du manuell eingetragen hast
+    const targets = await PasswordTarget.find({});
+    
+    // Sicherheitshalber prüfen, ob was da ist
+    if (!targets || targets.length === 0) {
+      return res.status(404).json({ message: "Keine Ziele in der Datenbank gefunden!" });
+    }
+
+    res.status(200).json({ targets });
+
+  } catch (error) {
+    console.error("Fehler beim Laden der Password-Targets:", error);
+    res.status(500).json({ message: "Server-Fehler" });
   }
 };

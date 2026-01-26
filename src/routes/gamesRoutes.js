@@ -6,7 +6,8 @@ import {
   getAllGames,
   getGameById,
   saveGameResult,
-  getQuestionsForQuiz
+  getQuestionsForQuiz,
+  getPasswordGameConfig
 } from "../controllers/gamesController.js";
 
 
@@ -17,6 +18,9 @@ router.get("/", getAllGames);
 
 // GET /games/:id/questions - 10 zufällige Fragen für das Game
 router.get("/:id/questions", getQuestionsForQuiz);
+
+//GET /passwird-cracker/config . Lädt die zu erratenden Passwörter aus der DB
+router.get("/password-cracker/config", getPasswordGameConfig);
 
 // GET /games/:id - einzelnes Game, oder 404
 router.get("/:id", getGameById);
