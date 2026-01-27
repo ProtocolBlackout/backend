@@ -161,18 +161,19 @@ export const saveGameResult = async (req, res) => {
 // GET /games/:id/questions - liefert eine Auswahl von (max.) 10 Fragen für ein Game
 export const getQuestionsForQuiz = async (req, res) => {
   const { id } = req.params; // erwartet gameId wie "quiz" (Frontend-ID)
+  const gameIds = id === "quiz" ? ["quiz", "quiz-01"] : [id];
 
   try {
     // Versuche, 10 zufällige Fragen aus der DB zu holen, die zur gameId passen
     let questions = await Question.aggregate([
-      { $match: { gameId: id } },
+      { $match: { gameId: { $in: gameIds } } },
       { $sample: { size: 10 } }
     ]);
 
     // Wenn keine Fragen für die konkrete gameId existieren, versuche mit Kategorie "quiz"
     if ((!questions || questions.length === 0) && id) {
       questions = await Question.aggregate([
-        { $match: { category: "quiz" } },
+        { $match: { category: id } },
         { $sample: { size: 10 } }
       ]);
     }
@@ -194,17 +195,22 @@ export const getQuestionsForQuiz = async (req, res) => {
     }
 
     // Mappe DB-Form in das Frontend-freundliche Format
-    const mapped = questions.map((q) => ({
-      gameId: q.gameId || id,
-      questionText: q.question,
-      answers: q.options,
-      correctIndex:
-        typeof q.correctIndex === "number"
-          ? q.correctIndex
-          : q.options
-            ? q.options.indexOf(q.answer)
-            : -1
-    }));
+    const mapped = questions.map((q) => {
+      let correctIndex = -1;
+
+      if (typeof q.correctIndex === "number") {
+        correctIndex = q.correctIndex;
+      } else if (Array.isArray(q.options) && typeof q.answer === "string") {
+        correctIndex = q.options.indexOf(q.answer);
+      }
+
+      return {
+        gameId: q.gameId || id,
+        questionText: q.question,
+        answers: Array.isArray(q.options) ? q.options : [],
+        correctIndex
+      };
+    });
 
     return res.status(200).json(mapped);
   } catch (error) {
