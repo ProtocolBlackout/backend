@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "node --env-file=.env --watch src/server.js",
-    "test": "node --env-file=.env node_modules/vitest/vitest.mjs --no-file-parallelism",
+    "test": "node --env-file=.env.test node_modules/vitest/vitest.mjs --no-file-parallelism",
     "start": "node src/server.js",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
