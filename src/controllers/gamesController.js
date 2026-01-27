@@ -3,47 +3,78 @@
 import { Question } from "../models/QuizQuestion.js";
 import PasswordTarget from "../models/PasswordTarget.js";
 
-
-// Mock-Daten für Games (Demo-Games + erste echte Projekt-Games)
-// Die ersten drei Einträge sind Demo-Games für Entwicklung und Tests.
-// Weitere Einträge (z. B. quiz-01) sind echte Projekt-Games.
+// Mock-Daten für Games (MVP)
+// Wichtig: Die IDs müssen zu den Frontend-localGames passen (quiz, cracker, phishing-finder)
 const games = [
   {
-    id: "1",
-    title: "Terminal Breach (Demo)",
-    description: "Demo-Game für Backend-Routen und Tests.",
-    difficulty: "medium",
-    category: "demo"
+    id: "quiz",
+    title: "Quiz",
+    description: "Teste dein Wissen rund um das Thema Hacking",
+    category: "quiz"
   },
   {
-    id: "2",
-    title: "Cipher Rush (Demo)",
-    description: "Demo-Game für Backend-Routen und Tests.",
-    difficulty: "easy",
-    category: "demo"
+    id: "cracker",
+    title: "Passwort Cracker",
+    description: "Na schaffst du es unsere Passwörter herauszufinden",
+    category: "password-cracker"
   },
   {
-    id: "3",
-    title: "Log Analyzer (Demo)",
-    description: "Demo-Game für Backend-Routen und Tests.",
-    difficulty: "hard",
-    category: "demo"
-  },
-  {
-    id: "quiz-01",
-    title: "Cybersecurity Quiz – Basics",
-    description: "Beantworte 10 Fragen rund um grundlegende IT-Security.",
-    difficulty: "easy",
-    category: "quiz",
-    xpReward: 50,
-    maxTimeSeconds: 120,
-    minScoreForWin: 7
+    id: "phishing-finder",
+    title: "Phishing Finder",
+    description: "Erkenne gefährliche Mails.",
+    category: "phishing"
   }
 ];
 
 // Hilfsfunktion: Game mit ID finden
 function findGameById(id) {
   return games.find((currentGame) => currentGame.id === id);
+}
+
+// Hilfsfunktion: Detaildaten für ein Game zusammenbauen (MVP)
+// - instructions kommen aktuell aus dem Frontend-Stand (damit es konsistent bleibt)
+// - links zeigen, welche API-Endpunkte zum Game gehören
+function buildGameDetails(game) {
+  if (!game) return null;
+
+  if (game.id === "quiz") {
+    return {
+      ...game,
+      instructions: [
+        "Seite 1: Lies die Frage sorgfältig.",
+        "Seite 2: Wähle die beste Antwort. Du hast 60 Sekunden pro Frage."
+      ],
+      links: {
+        questions: `/games/${game.id}/questions`
+      }
+    };
+  }
+
+  if (game.id === "cracker") {
+    return {
+      ...game,
+      instructions: [
+        "Seite 1: Du hast begrenzte Versuche.",
+        "Seite 2: Nutze Hinweise und Mustererkennung."
+      ],
+      links: {
+        config: "/games/password-cracker/config"
+      }
+    };
+  }
+
+  if (game.id === "phishing-finder") {
+    return {
+      ...game,
+      instructions: ["Spiel starten und Mails prüfen."],
+      links: {}
+    };
+  }
+
+  return {
+    ...game,
+    links: {}
+  };
 }
 
 // Hilfsfunktion: Aus XP das Level bestimmen (MVP-Version)
@@ -78,7 +109,8 @@ export const getGameById = (req, res) => {
     });
   }
 
-  res.status(200).json(game);
+  const details = buildGameDetails(game);
+  res.status(200).json(details);
 };
 
 // POST /games/:id/result - Spielergebnis speichern (geschützte Route)
@@ -128,20 +160,20 @@ export const saveGameResult = async (req, res) => {
 
 // GET /games/:id/questions - liefert eine Auswahl von (max.) 10 Fragen für ein Game
 export const getQuestionsForQuiz = async (req, res) => {
-  const { id } = req.params; // erwartet gameId wie 'quiz-01' oder "1" je nach Verwendung
+  const { id } = req.params; // erwartet gameId wie "quiz" (Frontend-ID)
 
   try {
     // Versuche, 10 zufällige Fragen aus der DB zu holen, die zur gameId passen
     let questions = await Question.aggregate([
       { $match: { gameId: id } },
-      { $sample: { size: 10 } },
+      { $sample: { size: 10 } }
     ]);
 
     // Wenn keine Fragen für die konkrete gameId existieren, versuche mit Kategorie "quiz"
     if ((!questions || questions.length === 0) && id) {
       questions = await Question.aggregate([
         { $match: { category: "quiz" } },
-        { $sample: { size: 10 } },
+        { $sample: { size: 10 } }
       ]);
     }
 
@@ -170,8 +202,8 @@ export const getQuestionsForQuiz = async (req, res) => {
         typeof q.correctIndex === "number"
           ? q.correctIndex
           : q.options
-          ? q.options.indexOf(q.answer)
-          : -1,
+            ? q.options.indexOf(q.answer)
+            : -1
     }));
 
     return res.status(200).json(mapped);
@@ -185,14 +217,15 @@ export const getPasswordGameConfig = async (req, res) => {
   try {
     // Holt einfach alles, was du manuell eingetragen hast
     const targets = await PasswordTarget.find({});
-    
+
     // Sicherheitshalber prüfen, ob was da ist
     if (!targets || targets.length === 0) {
-      return res.status(404).json({ message: "Keine Ziele in der Datenbank gefunden!" });
+      return res
+        .status(404)
+        .json({ message: "Keine Ziele in der Datenbank gefunden!" });
     }
 
     res.status(200).json({ targets });
-
   } catch (error) {
     console.error("Fehler beim Laden der Password-Targets:", error);
     res.status(500).json({ message: "Server-Fehler" });

@@ -23,7 +23,7 @@ beforeEach(async () => {
 
 describe("POST /games/:id/result", () => {
   it("gibt 401 zurück, wenn kein Token mitgeschickt wird", async () => {
-    const response = await request(app).post("/games/1/result").send({
+    const response = await request(app).post("/games/quiz/result").send({
       score: 10
     });
 
@@ -104,7 +104,7 @@ describe("POST /games/:id/result", () => {
 
     // Ergebnis für ein existierendes Game mit gültigem Token senden
     const resultResponse = await request(app)
-      .post("/games/1/result")
+      .post("/games/quiz/result")
       .set("Authorization", `Bearer ${token}`)
       .send({
         score: score
@@ -122,7 +122,7 @@ describe("POST /games/:id/result", () => {
     expect(updatedUser).not.toBeNull();
     expect(updatedUser.xp).toBe(score);
     expect(updatedUser.level).toBe(1);
-    expect(updatedUser.completedGames).toContain("1");
+    expect(updatedUser.completedGames).toContain("quiz");
     expect(updatedUser.completedGames.length).toBe(1);
   });
 
@@ -160,7 +160,7 @@ describe("POST /games/:id/result", () => {
 
     // Erstes Ergebnis für ein existierendes Game senden
     const firstResultResponse = await request(app)
-      .post("/games/1/result")
+      .post("/games/quiz/result")
       .set("Authorization", `Bearer ${token}`)
       .send({
         score: firstScore
@@ -170,7 +170,7 @@ describe("POST /games/:id/result", () => {
 
     // Zweites Ergebnis für dasselbe Game senden
     const secondResultResponse = await request(app)
-      .post("/games/1/result")
+      .post("/games/quiz/result")
       .set("Authorization", `Bearer ${token}`)
       .send({
         score: secondScore
@@ -190,7 +190,7 @@ describe("POST /games/:id/result", () => {
     expect(updatedUser.level).toBe(2);
 
     // completedGames soll das Game nur einmal enthalten
-    expect(updatedUser.completedGames).toContain("1");
+    expect(updatedUser.completedGames).toContain("quiz");
     expect(updatedUser.completedGames.length).toBe(1);
   });
 });
