@@ -172,7 +172,7 @@ describe("Profil-Routen", () => {
 
       // Ein Game-Ergebnis speichern (z.B. Game mit ID "1")
       const gameResultResponse = await request(app)
-        .post("/games/1/result")
+        .post("/games/quiz/result")
         .set("Authorization", `Bearer ${token}`)
         .send({ score: 50 });
 
@@ -197,7 +197,7 @@ describe("Profil-Routen", () => {
 
       // completedGames enthält die gespielte Game-ID
       expect(Array.isArray(progress.completedGames)).toBe(true);
-      expect(progress.completedGames).toContain("1");
+      expect(progress.completedGames).toContain("quiz");
     });
   });
 });

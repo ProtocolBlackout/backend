@@ -22,10 +22,10 @@ describe("GET /games", () => {
 
 describe("GET /games/:id", () => {
   it("gibt ein einzelnes Game zurück", async () => {
-    const response = await request(app).get("/games/1");
+    const response = await request(app).get("/games/quiz");
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty("id", "1");
+    expect(response.body).toHaveProperty("id", "quiz");
     expect(response.body).toHaveProperty("title");
   });
 
