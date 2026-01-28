@@ -56,8 +56,8 @@ export const registerUser = async (req, res) => {
 
     await createdUser.save();
 
-    // Basis-URL für den Link: im Deployment per ENV setzen, lokal fallback auf localhost
-    const baseUrl = process.env.BACKEND_PUBLIC_URL || "http://localhost:3000";
+    // Basis-URL fürs Frontend (für Links in Mails)
+    const baseUrl = process.env.FRONTEND_PUBLIC_URL || "http://localhost:5173";
 
     // Link, den der User per Mail bekommt, um seine E-Mail zu verifizieren
     const verifyLink = `${baseUrl}/auth/verify-email?token=${emailVerificationToken}`;
@@ -187,12 +187,13 @@ export const requestPasswordReset = async (req, res) => {
 
       await user.save();
 
-      // Basis-URL für den Link: im Deployment per ENV setzen, lokal fallback auf localhost
-      const baseUrl = process.env.BACKEND_PUBLIC_URL || "http://localhost:3000";
+      // Basis-URL fürs Frontend (im Deployment: Frontend-URL, lokal: localhost:5173)
+      const baseUrl =
+        process.env.FRONTEND_PUBLIC_URL || "http://localhost:5173";
 
       // Link, den der User als Mail bekommt, um das Passwort zurückzusetzen
       // Hinweis: Die eigentliche Passwortänderung passiert später über eine separate Route.
-      const resetLink = `${baseUrl}/auth/password-reset?token=${passwordResetToken}`;
+      const resetLink = `${baseUrl}/password-reset?token=${passwordResetToken}`;
 
       // Reset-Mail senden (darf den Request nicht blockieren)
       try {
