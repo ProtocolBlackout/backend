@@ -271,7 +271,7 @@ describe("Auth-Routen", () => {
 
       expect(mailArgs).toHaveProperty("to", userData.email);
       expect(mailArgs).toHaveProperty("text");
-      expect(mailArgs.text).toContain("/auth/password-reset?token=");
+      expect(mailArgs.text).toContain("/password-reset?token=");
 
       const token = mailArgs.text.split("token=")[1].split(/[&\s]/)[0];
 
@@ -362,7 +362,7 @@ describe("Auth-Routen", () => {
       expect(sendMail).toHaveBeenCalledTimes(1);
 
       const resetMailArgs = sendMail.mock.calls[0][0];
-      expect(resetMailArgs.text).toContain("/auth/password-reset?token=");
+      expect(resetMailArgs.text).toContain("/password-reset?token=");
 
       const resetToken = resetMailArgs.text
         .split("token=")[1]
