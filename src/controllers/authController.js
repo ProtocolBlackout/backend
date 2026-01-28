@@ -57,13 +57,27 @@ export const registerUser = async (req, res) => {
     await createdUser.save();
 
     // Basis-URL fürs Frontend (für Links in Mails)
-    const baseUrl = process.env.FRONTEND_PUBLIC_URL || "http://localhost:5173";
+    // Lokal dürfen wir auf localhost fallen, aber im Deployment NICHT,
+    // damit keine falschen Links (localhost) in echten Mails landen.
+    const baseUrl =
+      process.env.FRONTEND_PUBLIC_URL ||
+      (process.env.NODE_ENV !== "production" ? "http://localhost:5173" : null);
 
     // Link, den der User per Mail bekommt, um seine E-Mail zu verifizieren
-    const verifyLink = `${baseUrl}/auth/verify-email?token=${emailVerificationToken}`;
+    // Wenn baseUrl im Deployment fehlt, werfen wir absichtlich einen Fehler,
+    // der unten im Mail-try/catch landet (Registrierung bleibt trotzdem erfolgreich).
+    const verifyLink = baseUrl
+      ? `${baseUrl}/auth/verify-email?token=${emailVerificationToken}`
+      : null;
 
     // Welcome-Mail senden (darf Registrierung nicht blockieren)
     try {
+      if (!verifyLink) {
+        throw new Error(
+          "FRONTEND_PUBLIC_URL ist nicht gesetzt (Verify-Link kann nicht gebaut werden)"
+        );
+      }
+
       await sendMail({
         to: createdUser.email,
         subject: "Willkommen bei Protocol Blackout",
@@ -75,7 +89,7 @@ export const registerUser = async (req, res) => {
           "— Dein Protocol Blackout Team"
       });
     } catch (mailError) {
-      console.error("Fehler beim Welcome-Mailversand:", mailError);
+      console.error("Fehler beim Welcome-Mailversand:", mailError.message);
     }
 
     // Nur sichere Daten zurückgeben
@@ -187,16 +201,28 @@ export const requestPasswordReset = async (req, res) => {
 
       await user.save();
 
-      // Basis-URL fürs Frontend (im Deployment: Frontend-URL, lokal: localhost:5173)
+      // Basis-URL fürs Frontend (für Links in Mails)
+      // Lokal dürfen wir auf localhost fallen, aber im Deployment NICHT,
+      // damit keine falschen Links (localhost) in echten Mails landen.
       const baseUrl =
-        process.env.FRONTEND_PUBLIC_URL || "http://localhost:5173";
+        process.env.FRONTEND_PUBLIC_URL ||
+        (process.env.NODE_ENV !== "production"
+          ? "http://localhost:5173"
+          : null);
 
       // Link, den der User als Mail bekommt, um das Passwort zurückzusetzen
-      // Hinweis: Die eigentliche Passwortänderung passiert später über eine separate Route.
-      const resetLink = `${baseUrl}/password-reset?token=${passwordResetToken}`;
+      const resetLink = baseUrl
+        ? `${baseUrl}/password-reset?token=${passwordResetToken}`
+        : null;
 
       // Reset-Mail senden (darf den Request nicht blockieren)
       try {
+        if (!resetLink) {
+          throw new Error(
+            "FRONTEND_PUBLIC_URL ist nicht gesetzt (Reset-Link kann nicht gebaut werden)"
+          );
+        }
+
         await sendMail({
           to: user.email,
           subject: "Passwort zurücksetzen",
@@ -208,7 +234,10 @@ export const requestPasswordReset = async (req, res) => {
             "— Dein Protocol Blackout Team"
         });
       } catch (mailError) {
-        console.error("Fehler beim Passwort-Reset-Mailversand:", mailError);
+        console.error(
+          "Fehler beim Passwort-Reset-Mailversand:",
+          mailError.message
+        );
       }
     }
 
