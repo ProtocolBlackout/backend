@@ -151,7 +151,8 @@ export const loginUser = async (req, res) => {
     const safeUser = {
       id: existingUser._id.toString(),
       username: existingUser.username,
-      email: existingUser.email
+      email: existingUser.email,
+      preferredTheme: existingUser.preferredTheme ?? "dark"
     };
 
     return res.status(200).json({
@@ -309,7 +310,8 @@ export const getAuthProfile = (req, res) => {
     const safeUser = {
       id: req.user._id.toString(),
       username: req.user.username,
-      email: req.user.email
+      email: req.user.email,
+      preferredTheme: req.user.preferredTheme ?? "dark"
     };
 
     return res.status(200).json({
@@ -323,6 +325,46 @@ export const getAuthProfile = (req, res) => {
     });
   }
 };
+
+// Theme-Preference des eingeloggten Users aktualisieren
+export const updateAuthTheme = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Nicht autorisiert" });
+    }
+
+    const { preferredTheme } = req.body;
+
+    if (!preferredTheme) {
+      return res.status(400).json({ message: "preferredTheme ist erforderlich" });
+    }
+
+    if (preferredTheme !== "dark" && preferredTheme !== "light") {
+      return res.status(400).json({ message: "preferredTheme muss 'dark' oder 'light' sein" });
+    }
+
+    req.user.preferredTheme = preferredTheme;
+    await req.user.save();
+
+    const safeUser = {
+      id: req.user._id.toString(),
+      username: req.user.username,
+      email: req.user.email,
+      preferredTheme: req.user.preferredTheme
+    };
+
+    return res.status(200).json({
+      message: "Theme gespeichert",
+      user: safeUser
+    });
+  } catch (error) {
+    console.error("Fehler bei updateAuthTheme:", error);
+    return res.status(500).json({
+      message: "Es ist ein Fehler beim Speichern des Themes aufgetreten"
+    });
+  }
+};
+
 
 // Profil des eingeloggten Users löschen
 export const deleteAuthProfile = async (req, res) => {
