@@ -51,6 +51,11 @@ const userSchema = new mongoose.Schema(
     completedGames: {
       type: [String],
       default: []
+    },
+    preferredTheme:{
+      type: String,
+      enum:["light", "dark"],
+      default: "dark"
     }
   },
   {

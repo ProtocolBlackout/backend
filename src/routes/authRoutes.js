@@ -7,6 +7,7 @@ import {
   requestPasswordReset,
   confirmPasswordReset,
   getAuthProfile,
+  updateAuthTheme,
   deleteAuthProfile,
   verifyEmail
 } from "../controllers/authController.js";
@@ -24,5 +25,9 @@ router.get("/verify-email", verifyEmail);
 // Geschützte Routen (Login erforderlich)
 router.get("/profile", authMiddleware, getAuthProfile);
 router.delete("/profile", authMiddleware, deleteAuthProfile);
+
+//Geschütze Route zum speichern des Profilsthemes
+router.patch("/profile/theme", authMiddleware, updateAuthTheme);
+
 
 export default router;

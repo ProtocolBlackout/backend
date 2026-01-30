@@ -19,7 +19,8 @@ export const getProfile = (req, res) => {
       username: req.user.username,
       email: req.user.email,
       xp: userXp,
-      level: userLevel
+      level: userLevel,
+      preferredTheme: req.user.preferredTheme ?? "dark"
     };
 
     return res.status(200).json({
