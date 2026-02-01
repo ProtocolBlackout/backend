@@ -1,4 +1,4 @@
-// Tests für die Mail-Routen (/mail/test)
+// Tests für die Mail-Routen (/mail/test) + Zusätzlich Tests für Kontaktformular (/mail/contact)
 
 import request from "supertest";
 import { describe, it, expect, beforeEach, beforeAll, vi } from "vitest";
@@ -30,6 +30,63 @@ beforeEach(async () => {
 });
 
 describe("Mail-Routen", () => {
+  // Kontaktformular (öffentlich, ohne Token)
+  describe("POST /mail/contact", () => {
+    it("gibt 400 zurück, wenn Pflichtfelder fehlen", async () => {
+      const response = await request(app).post("/mail/contact").send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty(
+        "message",
+        "Bitte fülle alle Felder aus"
+      );
+      expect(sendMailMock).toHaveBeenCalledTimes(0);
+    });
+
+    it("gibt 400 zurück, wenn die E-Mail ungültig ist", async () => {
+      const response = await request(app).post("/mail/contact").send({
+        name: "Max",
+        email: "keine-mail",
+        subject: "Test",
+        message: "Hallo"
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty(
+        "message",
+        "Bitte gib eine gültige E-Mail-Adresse ein"
+      );
+      expect(sendMailMock).toHaveBeenCalledTimes(0);
+    });
+
+    it("sendet eine Kontakt-Mail und gibt 200 zurück", async () => {
+      // Mailversand im Service als erfolgreich simulieren
+      sendMailMock.mockResolvedValue();
+
+      const response = await request(app).post("/mail/contact").send({
+        name: "Max Mustermann",
+        email: "max@example.com",
+        subject: "Frage",
+        message: "Hi, ich habe eine Frage."
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty(
+        "message",
+        "Nachricht wurde gesendet"
+      );
+
+      // Prüfen, ob unser Mail-Service genutzt wurde
+      expect(sendMailMock).toHaveBeenCalledTimes(1);
+      expect(sendMailMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: process.env.GMAIL_FROM,
+          subject: expect.stringContaining("Kontaktformular")
+        })
+      );
+    });
+  });
+
   describe("POST /mail/test", () => {
     it("gibt 401 zurück, wenn kein Token gesendet wird", async () => {
       const response = await request(app).post("/mail/test");
