@@ -10,6 +10,10 @@ import { connectDB } from "./services/connectDB.js";
 
 const app = express();
 
+// Render läuft hinter Proxy/Loadbalancer, damit Rate-Limits pro Client-IP statt global greifen
+// Hintergrund: Ohne korrektes Proxy-Setup kann req.ip die Proxy-IP sein → dann teilt sich “die ganze Welt” ein Limit.
+app.set("trust proxy", 1);
+
 // Datenbankverbindung herstellen
 connectDB();
 
@@ -57,7 +61,7 @@ app.use("/auth", authRoutes);
 // Profile-Routen für eingeloggte User
 app.use("/profile", profileRoutes);
 
-// Mail-Routen für eingeloggte User
+// Mail-Routen: Kontaktformular ist öffentlich, interne Mail-Tools ggf. geschützt
 app.use("/mail", mailRoutes);
 
 export default app;
