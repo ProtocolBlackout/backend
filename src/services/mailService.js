@@ -28,6 +28,20 @@ const isSmtpConfigured = () => {
   );
 };
 
+// RFC 2047 für Header-Werte (z.B. Subject)
+// Hintergrund: In MIME-Headern dürfen Umlaute/Unicode nicht "roh" stehen.
+// Sonst können Mail-Clients Zeichenfehler wie "zurÃ¼cksetzen" anzeigen.
+const encodeHeaderValue = (value) => {
+  const isAsciiOnly = /^[\x00-\x7F]*$/.test(value);
+
+  if (isAsciiOnly) {
+    return value;
+  }
+
+  const base64 = Buffer.from(value, "utf8").toString("base64");
+  return `=?UTF-8?B?${base64}?=`;
+};
+
 // Gmail API erwartet die komplette E-Mail als "rohen Text" (inkl. Header wie From/To/Subject)
 // Danach muss dieser Text in ein spezielles Base64-Format umgewandelt werden,
 // damit er über die API übertragen werden kann.
@@ -36,7 +50,7 @@ const buildRawEmail = ({ from, to, subject, text, html }) => {
   const headers = [
     `From: ${from}`,
     `To: ${to}`,
-    `Subject: ${subject}`,
+    `Subject: ${encodeHeaderValue(subject)}`,
     // MIME ist das übliche "Format" für E-Mails
     // Damit kann eine Mail z.B. Text UND HTML enthalten (oder später auch Anhänge)
     "MIME-Version: 1.0"
@@ -77,7 +91,7 @@ const buildRawEmail = ({ from, to, subject, text, html }) => {
   // Gmail braucht "base64url":
   // Das ist einfach Base64, aber so angepasst, dass es in URLs/HTTP sicher ist
   // (Einige Zeichen werden ersetzt und am Ende werden "=" entfernt)
-  const base64 = Buffer.from(mimeMessage)
+  const base64 = Buffer.from(mimeMessage, "utf8")
     .toString("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
