@@ -81,7 +81,8 @@ describe("Mail-Routen", () => {
       expect(sendMailMock).toHaveBeenCalledWith(
         expect.objectContaining({
           to: process.env.GMAIL_FROM,
-          subject: expect.stringContaining("Kontaktformular")
+          subject: expect.stringContaining("Kontaktformular"),
+          replyTo: "max@example.com"
         })
       );
     });
