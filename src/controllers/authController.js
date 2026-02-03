@@ -336,11 +336,15 @@ export const updateAuthTheme = async (req, res) => {
     const { preferredTheme } = req.body;
 
     if (!preferredTheme) {
-      return res.status(400).json({ message: "preferredTheme ist erforderlich" });
+      return res
+        .status(400)
+        .json({ message: "preferredTheme ist erforderlich" });
     }
 
     if (preferredTheme !== "dark" && preferredTheme !== "light") {
-      return res.status(400).json({ message: "preferredTheme muss 'dark' oder 'light' sein" });
+      return res
+        .status(400)
+        .json({ message: "preferredTheme muss 'dark' oder 'light' sein" });
     }
 
     req.user.preferredTheme = preferredTheme;
@@ -365,7 +369,6 @@ export const updateAuthTheme = async (req, res) => {
   }
 };
 
-
 // Profil des eingeloggten Users löschen
 export const deleteAuthProfile = async (req, res) => {
   try {
@@ -386,8 +389,29 @@ export const deleteAuthProfile = async (req, res) => {
       });
     }
 
+    // Bestätigungsmail nach Kontolöschung senden (darf die Löschung nicht blockieren)
+    // deletedUser enthält noch username/email, obwohl der Datensatz bereits gelöscht ist
+    try {
+      await sendMail({
+        to: deletedUser.email,
+        subject: "Dein Protocol Blackout Konto wurde gelöscht",
+        text:
+          `Hi ${deletedUser.username}!\n\n` +
+          "Dein Konto wurde soeben erfolgreich gelöscht.\n\n" +
+          "Wenn du das nicht selbst warst, melde dich bitte bei uns.\n" +
+          "— Dein Protocol Blackout Team"
+      });
+    } catch (mailError) {
+      console.error(
+        "Fehler beim Kontolöschung-Mailversand:",
+        mailError.message
+      );
+    }
+
+    // nextPath als Vorbereitung fürs Frontend
     return res.status(200).json({
-      message: "Profil erfolgreich gelöscht"
+      message: "Profil erfolgreich gelöscht",
+      nextPath: "/goodbye"
     });
   } catch (error) {
     console.error("Fehler beim deleteAuthProfile:", error);

@@ -570,6 +570,26 @@ describe("Auth-Routen", () => {
         "Profil erfolgreich gelöscht"
       );
 
+      // nextPath als Vorbereitung fürs Frontend (Goodbye-Seite)
+      expect(deleteResponse.body).toHaveProperty("nextPath", "/goodbye");
+
+      // Zweites Mal nach Kontolöschung (Bestätigungsmail)
+      expect(sendMail).toHaveBeenCalledTimes(2);
+
+      // Inhalt des zweiten Mail-Calls prüfen
+      const deleteMailArgs = sendMail.mock.calls[1][0];
+
+      expect(deleteMailArgs).toHaveProperty("to", userData.email);
+      expect(deleteMailArgs).toHaveProperty(
+        "subject",
+        "Dein Protocol Blackout Konto wurde gelöscht"
+      );
+
+      // Text der Kontolöschung-Mail prüfen
+      expect(deleteMailArgs.text).toContain(
+        "Dein Konto wurde soeben erfolgreich gelöscht"
+      );
+
       // Prüfen, ob der User in der DB nicht mehr existiert
       const deletedUser = await User.findOne({ email: userData.email });
 
