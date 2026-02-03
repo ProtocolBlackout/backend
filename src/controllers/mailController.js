@@ -55,7 +55,8 @@ export const sendContactMail = async (req, res) => {
     await sendMail({
       to,
       subject: mailSubject,
-      text
+      text,
+      replyTo: email
     });
 
     return res.status(200).json({

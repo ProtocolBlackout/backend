@@ -45,7 +45,7 @@ const encodeHeaderValue = (value) => {
 // Gmail API erwartet die komplette E-Mail als "rohen Text" (inkl. Header wie From/To/Subject)
 // Danach muss dieser Text in ein spezielles Base64-Format umgewandelt werden,
 // damit er über die API übertragen werden kann.
-const buildRawEmail = ({ from, to, subject, text, html }) => {
+const buildRawEmail = ({ from, to, subject, text, html, replyTo }) => {
   // Standard-Header, die jede Mail braucht
   const headers = [
     `From: ${from}`,
@@ -55,6 +55,11 @@ const buildRawEmail = ({ from, to, subject, text, html }) => {
     // Damit kann eine Mail z.B. Text UND HTML enthalten (oder später auch Anhänge)
     "MIME-Version: 1.0"
   ];
+
+  // Reply-To nur setzen, wenn vorhanden (Kontaktformular: Antworten gehen an User-Mail)
+  if (replyTo) {
+    headers.push(`Reply-To: ${replyTo}`);
+  }
 
   let mimeBody = "";
 
@@ -102,7 +107,7 @@ const buildRawEmail = ({ from, to, subject, text, html }) => {
 
 // Versendet über Gmail API
 // Vorteil: funktioniert auf Render zuverlässig, weil kein SMTP-Outgoing nötig ist
-const sendViaGmailApi = async ({ from, to, subject, text, html }) => {
+const sendViaGmailApi = async ({ from, to, subject, text, html, replyTo }) => {
   // OAuth2 Client wird mit ClientId/Secret/RedirectUri erstellt
   // Der Refresh Token reicht aus, um automatisch Access Tokens zu holen
   const oauth2Client = new google.auth.OAuth2(
@@ -129,7 +134,8 @@ const sendViaGmailApi = async ({ from, to, subject, text, html }) => {
     to,
     subject,
     text,
-    html
+    html,
+    replyTo
   });
 
   // userId "me" = der authentifizierte Gmail-Account
@@ -143,8 +149,8 @@ const sendViaGmailApi = async ({ from, to, subject, text, html }) => {
 
 // Versendet über SMTP (Nodemailer)
 // SMTP ist nur unser Fallback, falls Gmail nicht konfiguriert ist
-// Hinweis: In eurer aktuellen Render-Umgebung kann SMTP je nach Provider/Plan blockiert oder instabil sein
-const sendViaSmtp = async ({ from, to, subject, text, html }) => {
+// Hinweis: In unserer aktuellen Render-Umgebung kann SMTP je nach Provider/Plan blockiert oder instabil sein
+const sendViaSmtp = async ({ from, to, subject, text, html, replyTo }) => {
   // Port muss eine Zahl sein (z.B. 465 oder 587)
   const smtpPort = Number(process.env.SMTP_PORT);
   if (!smtpPort) {
@@ -176,13 +182,18 @@ const sendViaSmtp = async ({ from, to, subject, text, html }) => {
     mailOptions.html = html;
   }
 
+  // replyTo nur hinzufügen, wenn es wirklich existiert
+  if (replyTo) {
+    mailOptions.replyTo = replyTo;
+  }
+
   await transporter.sendMail(mailOptions);
 };
 
 // Öffentliche Funktion für Controller:
 // - entscheidet automatisch Gmail vs SMTP
 // - wirft klare Fehler, wenn gar nichts konfiguriert ist
-export const sendMail = async ({ to, subject, text, html }) => {
+export const sendMail = async ({ to, subject, text, html, replyTo }) => {
   // Minimal-Validierung (Controller muss nicht doppelt validieren)
   if (!to || !subject) {
     throw new Error("Empfänger und Betreff sind Pflicht");
@@ -201,7 +212,8 @@ export const sendMail = async ({ to, subject, text, html }) => {
       to,
       subject,
       text,
-      html
+      html,
+      replyTo
     });
   }
 
@@ -223,6 +235,7 @@ export const sendMail = async ({ to, subject, text, html }) => {
     to,
     subject,
     text,
-    html
+    html,
+    replyTo
   });
 };
