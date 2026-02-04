@@ -1,0 +1,43 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --env-file=.env --watch src/server.js",
+    "test": "node --env-file=.env.test node_modules/vitest/vitest.mjs --no-file-parallelism",
+    "start": "node src/server.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "scriptsInfo": {
+    "test": "--no-file-parallelism sorgt dafür, dass Vitest Testdateien nicht parallel ausführt, sondern nacheinander"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProtocolBlackout/backend.git"
+  },
+  "keywords": [],
+  "author": "Lu-Nes",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/ProtocolBlackout/backend/issues"
+  },
+  "homepage": "https://github.com/ProtocolBlackout/backend#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "googleapis": "^170.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.0.0",
+    "nodemailer": "^7.0.11"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4",
+    "supertest": "^7.1.4",
+    "vitest": "^3.2.4"
+  }
+}
