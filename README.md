@@ -2,7 +2,7 @@
 
 Protocol Blackout ist eine interaktive Webanwendung rund um das Thema Hacking. Sie erklärt, was Hacking ist, wie es entstanden ist und sich im Laufe der Zeit entwickelt hat, beleuchtet ethische Fragen und zeigt, wie man sich vor Angriffen schützen kann.
 
-Mit einem Quiz, einem Password Cracker und einem Phishing Finder werden zentrale Inhalte spielerisch vertieft. Die Spiele können auch ohne Benutzerkonto ausprobiert werden. Angemeldete Nutzerinnen und Nutzer können ihre Ergebnisse, ihren Spielfortschritt sowie gesammelte XP und erreichte Level speichern.
+Mit einem Quiz, einem Password Cracker und einem Phishing Finder werden zentrale Inhalte spielerisch vertieft. Die Spiele können auch ohne Benutzerkonto ausprobiert werden. Für angebundene Spiele können angemeldete Nutzerinnen und Nutzer ihre Ergebnisse und ihren Spielfortschritt speichern sowie XP sammeln und Level erreichen.
 
 Dieses Repository enthält die REST API der Anwendung. Das Backend übernimmt unter anderem die Authentifizierung und Benutzerverwaltung, stellt Spiele und Spieldaten bereit, verarbeitet Spielergebnisse und Fortschritt und unterstützt Profil- sowie Mail-Funktionen.
 
