@@ -1,3 +1,22 @@
+# Protocol Blackout – Backend
+
+Protocol Blackout ist eine interaktive Webanwendung rund um das Thema Hacking. Sie erklärt, was Hacking ist, wie es entstanden ist und sich im Laufe der Zeit entwickelt hat, beleuchtet ethische Fragen und zeigt, wie man sich vor Angriffen schützen kann.
+
+Mit einem Quiz, einem Password Cracker und einem Phishing Finder werden zentrale Inhalte spielerisch vertieft. Die Spiele können auch ohne Benutzerkonto ausprobiert werden. Angemeldete Nutzerinnen und Nutzer können ihre Ergebnisse, ihren Spielfortschritt sowie gesammelte XP und erreichte Level speichern.
+
+Dieses Repository enthält die REST API der Anwendung. Das Backend übernimmt unter anderem die Authentifizierung und Benutzerverwaltung, stellt Spiele und Spieldaten bereit, verarbeitet Spielergebnisse und Fortschritt und unterstützt Profil- sowie Mail-Funktionen.
+
+## Live-Anwendung und API
+
+- **Live-Anwendung:** [Protocol Blackout](https://protocol-blackout.onrender.com/)
+- **API-Basis:** `https://protocol-blackout-backend-main.onrender.com`
+- **Health Check:** [`GET /health`](https://protocol-blackout-backend-main.onrender.com/health)
+- **Öffentliche Spieldaten:** [`GET /games`](https://protocol-blackout-backend-main.onrender.com/games)
+
+## Projektkontext
+
+Protocol Blackout entstand als gemeinsames Fullstack-Abschlussprojekt mit getrennten Repositories für Frontend, Backend und Spieldaten.
+
 ## Beitrag von Lu-Nes
 
 Verantwortungsbereiche von [Lu-Nes](https://github.com/Lu-Nes) als **Backend Lead und Projektmanagerin**:
@@ -53,31 +72,31 @@ npm install
 
 Lege im Backend-Root eine `.env` an und nutze `env.sample` als Vorlage.
 
-**Pflicht:**
+Pflicht:
 
 - `MONGODB_URL`
 - `DATABASE`
 - `JWT_SECRET`
 
-**Optional (je nach Umgebung):**
+Optional – je nach Umgebung:
 
-- `PORT` (Default: 3000)
-- `JWT_EXPIRES_IN` (Fallback: `1h`)
-- `FRONTEND_PUBLIC_URL` (CORS)
+- `PORT` – Default: `3000`
+- `JWT_EXPIRES_IN` – Fallback: `1h`
+- `FRONTEND_PUBLIC_URL` – CORS
 - `BACKEND_PUBLIC_URL`
 
-**Mail (optional):**
+Mail – optional:
 
 - Gmail API: `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `GMAIL_REDIRECT_URI`, optional `GMAIL_FROM`
 - SMTP-Fallback: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
 
-### 3) Starten (Dev)
+### 3) Starten – Entwicklung
 
 ```bash
 npm run dev
 ```
 
-### 4) Starten (Prod/Render)
+### 4) Starten – Produktion/Render
 
 ```bash
 npm start
@@ -106,18 +125,18 @@ npm run format:check
 - `GET /games/:id`
 - `GET /games/:id/questions`
 - `GET /games/password-cracker/config`
-- `POST /auth/register` _(rate-limited)_
-- `POST /auth/login` _(rate-limited)_
-- `POST /auth/password-reset/request` _(rate-limited)_
-- `POST /auth/password-reset/confirm` _(rate-limited)_
-- `GET /auth/verify-email` _(rate-limited)_
-- `POST /mail/contact` _(rate-limited)_
+- `POST /auth/register` – rate-limited
+- `POST /auth/login` – rate-limited
+- `POST /auth/password-reset/request` – rate-limited
+- `POST /auth/password-reset/confirm` – rate-limited
+- `GET /auth/verify-email` – rate-limited
+- `POST /mail/contact` – rate-limited
 
-### Geschützt (JWT erforderlich)
+### Geschützt – JWT erforderlich
 
 Header:
 
-```txt
+```text
 Authorization: Bearer <token>
 ```
 
@@ -130,8 +149,9 @@ Authorization: Bearer <token>
 - `DELETE /auth/profile`
 - `POST /mail/test`
 
-> Games können von Gästen angezeigt und gespielt werden (`/games`, `/games/:id`).  
-> Speichern von Ergebnissen oder Fortschritt (`/games/:id/result`, `/profile`, `/profile/progress`) erfordert einen eingeloggten User.
+> Games können von Gästen angezeigt und gespielt werden (`/games`, `/games/:id`).
+>
+> Das Speichern von Ergebnissen oder Fortschritt (`/games/:id/result`, `/profile`, `/profile/progress`) erfordert ein angemeldetes Benutzerkonto.
 
 ---
 
@@ -143,17 +163,23 @@ npm test
 
 Zentrale Backend-Funktionen wurden im Rahmen eines TDD-light-Ansatzes testorientiert entwickelt.
 
-Hinweis: Tests laden ENV aus `.env.test`.
+Hinweis: Tests laden die Umgebungsvariablen aus `.env.test`.
 
-Hinweis: Für Tests kann der Rate Limiter deaktiviert werden:
+Für Tests kann der Rate Limiter deaktiviert werden:
 
-- `RATE_LIMITER_DISABLED=true` (in `.env.test`)
+```env
+RATE_LIMITER_DISABLED=true
+```
+
+Diese Einstellung ist ausschließlich für `.env.test` vorgesehen und darf nicht in der Produktionsumgebung aktiviert werden.
 
 ---
 
-## Deployment (Render Hinweise)
+## Deployment – Render
 
+- produktiver Service: `protocol-blackout-backend-main`
+- Deployment-Branch: `main`
 - Health Check Path: `/health`
-- `trust proxy` ist gesetzt (relevant für Rate Limits hinter Proxies/Loadbalancern)
+- `trust proxy` ist gesetzt und berücksichtigt Rate Limits hinter Proxies beziehungsweise Loadbalancern
 - Build Command: `npm install`
 - Start Command: `npm start`
