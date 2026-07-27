@@ -1,6 +1,43 @@
-# Protocol Blackout – Backend
+## Beitrag von Lu-Nes
 
-Backend-API für **Protocol Blackout** (Node + Express + MongoDB) mit JWT-Auth, Rate Limiting, Mail-Service (Gmail API bevorzugt, SMTP-Fallback) und Tests (Vitest + Supertest).
+Verantwortungsbereiche von [Lu-Nes](https://github.com/Lu-Nes) als **Backend Lead und Projektmanagerin**:
+
+- Planung und Strukturierung der Backend-Entwicklung
+- JWT-basierte Authentifizierung und Benutzerverwaltung
+- User-, Profil- und Spiele-Endpunkte
+- Speicherung von Spielfortschritt, XP und Levelständen
+- testorientierte Entwicklung im TDD-light-Ansatz mit Vitest und Supertest
+- Anbindung des bestehenden React-Frontends an die API
+- Deployment des Backends
+- zusätzliche Übernahme des Frontend-Deployments
+
+## Zentrale Funktionen
+
+- Registrierung, Login und JWT-Authentifizierung
+- geschützte Benutzer- und Profilrouten
+- öffentliche und geschützte Spiele-Endpunkte
+- Speicherung von Spielergebnissen und Spielfortschritt
+- XP- und Level-System
+- Funktion zum Zurücksetzen des Passworts
+- Mailversand über Gmail API mit SMTP-Fallback
+- Rate Limiting für sensible Endpunkte
+- automatisierte Backend- und API-Tests
+
+## Tech-Stack
+
+- Node.js
+- Express
+- MongoDB und Mongoose
+- JSON Web Tokens
+- Vitest und Supertest
+- Gmail API und Nodemailer
+- Render
+
+## Repositories
+
+- **Backend:** Dieses Repository
+- **Frontend:** [ProtocolBlackout/frontend](https://github.com/ProtocolBlackout/frontend)
+- **Spieldaten:** [ProtocolBlackout/games](https://github.com/ProtocolBlackout/games)
 
 ---
 
@@ -103,6 +140,8 @@ Authorization: Bearer <token>
 ```bash
 npm test
 ```
+
+Zentrale Backend-Funktionen wurden im Rahmen eines TDD-light-Ansatzes testorientiert entwickelt.
 
 Hinweis: Tests laden ENV aus `.env.test`.
 
